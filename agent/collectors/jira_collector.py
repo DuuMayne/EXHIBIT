@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Jira + Confluence evidence collector via Atlassian REST API.
 Covers: project list, issue counts, audit log, Confluence policies.
