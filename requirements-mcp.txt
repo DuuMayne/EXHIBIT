@@ -1,0 +1,3 @@
+# MCP server dependencies — requires Python 3.10+
+# Only needed inside Docker; not required for local CLI usage.
+mcp[cli]>=1.0.0

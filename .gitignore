@@ -1,6 +1,7 @@
 .env
 *.json
 !.env.example
+!.claude.json
 __pycache__/
 *.py[cod]
 .venv/
