@@ -549,4 +549,15 @@ frameworks/
 
 ## License
 
-Apache 2.0 with Commons Clause. Free to use and modify for internal purposes; redistribution as a commercial product requires permission. See [LICENSE](LICENSE) for full terms.
+EXHIBIT uses a dual license:
+
+| What | License |
+|---|---|
+| Source code (`agent/`, `mcp_server/`, `Dockerfile`, etc.) | [Apache 2.0](LICENSE) |
+| Documentation & templates (`README.md`, `frameworks/*.csv`, skills) | [CC BY 4.0](LICENSE-docs) |
+
+**Apache 2.0** means you can use, modify, and redistribute the code freely — including commercially — as long as you include the license and attribution.
+
+**CC BY 4.0** means you can share and adapt the docs and templates for any purpose, as long as you credit the original.
+
+Copyright 2026 Adam Duman
