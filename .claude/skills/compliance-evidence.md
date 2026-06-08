@@ -22,11 +22,29 @@ Located in `frameworks/` — auto-detected from ID patterns, no extra flags need
 - `frameworks/nist_csf_2.csv`
 - `frameworks/earnest_audit_2026.csv`
 
-## How to run
+## Preferred: run via MCP server (Docker)
 
-1. Confirm `compliance-agent/` is at `~/Projects/compliance-agent/`
-2. Confirm `.env` has `ANTHROPIC_API_KEY` and at least one integration credential
-3. Run:
+Credentials live in Docker Desktop — no .env file needed.
+
+```bash
+# First time: build the image and start the container
+cd ~/Projects/compliance-agent
+docker compose up -d --build
+
+# Claude Code picks it up automatically via .claude.json (http://localhost:8765/sse)
+```
+
+Then use MCP tools directly in conversation:
+- `list_frameworks` — see available questionnaire templates
+- `check_integration_status` — verify which credentials are configured
+- `upload_questionnaire` — paste a questionnaire as text
+- `dry_run_collection` — preview routing plan
+- `collect_evidence` — run full collection, returns Drive link
+
+Set credentials in Docker Desktop: open the container → **Inspect** → **Env** tab,
+or edit the `environment:` block in `docker-compose.yml` before starting.
+
+## Alternative: run locally via CLI
 
 ```bash
 cd ~/Projects/compliance-agent
@@ -34,17 +52,15 @@ source .venv/bin/activate
 python -m agent.main "<questionnaire_path>" "<engagement_name>"
 ```
 
-4. Return the Google Drive link when complete.
-
-## Flags
+CLI flags:
 - `--dry-run` — show collection plan with no API calls or Drive writes
 - `--no-claude` — skip LLM classification, use built-in routing only (faster, works offline)
 - `--only aws,github,crowdstrike` — restrict to specific systems
 - `--check-credentials` — verify which integrations are configured
 
-## Arguments
+Arguments:
 - `questionnaire_path`: path to CSV or Excel file; or paste raw text and I'll save it to `/tmp/questionnaire.csv`
-- `engagement_name`: descriptive name e.g. `"Acme Corp ISO 27001 Gap Assessment 2026"`
+- `engagement_name`: descriptive name e.g. `"Baker Tilly Q2 2026"`
 
 ## Input CSV format
 Required columns: `id`, `question`. Optional: `category`.
@@ -81,5 +97,7 @@ Chrome profile over corporate VPN. Alternatively, collect IAM/CloudTrail evidenc
 AWS directly using `--only aws` since they run in Earnest's AWS environment.
 
 ## Credential reference
-See `.env.example` for all credential vars. Run `--check-credentials` to see
-current status. Google Drive service account setup instructions are in `README.md`.
+All credential var names are in `docker-compose.yml` (environment block) and `.env.example`.
+For the Docker path: set values in Docker Desktop UI or `docker-compose.yml` — never commit secrets.
+For the CLI path: copy `.env.example` → `.env` and fill in values.
+Google Drive service account setup: see `README.md`.
