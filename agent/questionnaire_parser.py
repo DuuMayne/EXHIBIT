@@ -19,7 +19,7 @@ SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
     "CC2": ["confluence", "jira"],
     "CC3": ["confluence", "jira"],
     "CC4": ["confluence", "jira"],
-    "CC5": ["confluence", "github", "jira"],
+    "CC5": ["confluence", "github", "env0", "jira"],
     "CC6.1": ["okta", "aws", "github"],
     "CC6.2": ["okta", "jira"],
     "CC6.3": ["okta", "aws", "jira"],
@@ -33,7 +33,7 @@ SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
     "CC7.3": ["jira"],
     "CC7.4": ["jira", "confluence"],
     "CC7.5": ["jira", "confluence"],
-    "CC8.1": ["github", "jira"],
+    "CC8.1": ["github", "env0", "jira"],
     "CC9.1": ["confluence", "jira"],
     "CC9.2": ["confluence", "jira"],
     "A1": ["aws", "jira", "confluence"],
@@ -49,7 +49,7 @@ NYDFS_SECTION_SYSTEMS: dict[str, list[str]] = {
     "500.5": ["jira", "confluence"],
     "500.6": ["aws", "okta", "github"],
     "500.7": ["okta", "aws"],
-    "500.8": ["github", "confluence"],
+    "500.8": ["github", "env0", "confluence"],
     "500.9": ["confluence", "jira"],
     "500.10": ["confluence"],
     "500.11": ["confluence", "jira"],
@@ -71,11 +71,19 @@ SYSTEM_KEYWORDS = {
         "cloud infrastructure", "cloud hosting", "backup", "disaster recovery",
         "code changes", "database", "read-only access", "db access",
     ],
+    System.ENV0: [
+        "env0", "infrastructure as code", "iac", "terraform", "tofu", "opentofu",
+        "infrastructure change", "deploy", "deployment", "environment",
+        "staging environment", "production environment", "database change",
+        "rds change", "snowflake change", "drift", "configuration drift",
+        "who can deploy", "deploy to production", "build to production",
+    ],
     System.GITHUB: [
         "github", "repository", "branch protection", "code review", "pr",
         "pull request", "sast", "secret scanning", "dependency", "sbom",
         "source code", "version control", "commit signing", "sdlc",
         "secure development", "application security", "code scanning",
+        "code changes",
     ],
     System.OKTA: [
         "okta", "sso", "saml", "mfa", "multi-factor", "authentication policy",
@@ -114,8 +122,9 @@ SYSTEM_KEYWORDS = {
 CLASSIFICATION_PROMPT = """You are a compliance evidence analyst. Given a list of audit questions or evidence requests, classify each one.
 
 System reference:
-- "aws": IAM, CloudTrail, S3, RDS, ACM, CloudWatch, Config — any AWS infrastructure
-- "github": code changes, branch protections, deploy access, repo membership, staging branches, PR population
+- "aws": IAM, CloudTrail, S3, RDS, ACM, CloudWatch, Config — any AWS infrastructure or database access
+- "env0": infrastructure-as-code deployments, Terraform/OpenTofu runs, environment inventory (prod/staging separation), IaC team permissions, deployment approvals, configuration drift — use for ANY infrastructure change or deploy-to-production question
+- "github": application code changes (PRs, commits), branch protections, SAST/secret scanning, repo membership, staging branches — use alongside env0 for change management questions
 - "okta": access reviews, user accounts, MFA, privileged access, provisioning/deprovisioning, inactivity policy
 - "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
 - "confluence": policies, procedures, runbooks — anything asking for written documentation
