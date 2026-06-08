@@ -41,6 +41,67 @@ SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
     "PI1": ["github", "jira"],
 }
 
+# ISO 27001:2022 Annex A → systems map
+ISO27001_CRITERIA_SYSTEMS: dict[str, list[str]] = {
+    "5.1": ["confluence"], "5.2": ["confluence"], "5.3": ["okta", "github", "confluence"],
+    "5.4": ["confluence"], "5.7": ["confluence", "jira"], "5.9": ["confluence"],
+    "5.10": ["confluence"], "5.12": ["confluence"], "5.14": ["confluence"],
+    "5.15": ["okta", "aws", "github", "confluence"], "5.16": ["okta", "confluence"],
+    "5.17": ["okta", "aws", "confluence"], "5.18": ["okta", "aws", "github"],
+    "5.19": ["confluence", "jira"], "5.20": ["confluence"], "5.22": ["confluence", "jira"],
+    "5.23": ["aws", "confluence"], "5.24": ["confluence", "jira"],
+    "5.26": ["jira", "confluence"], "5.27": ["jira", "confluence"],
+    "5.29": ["jira", "confluence"], "5.31": ["confluence"],
+    "5.33": ["confluence"], "5.35": ["confluence", "jira"], "5.36": ["confluence"],
+    "6.1": ["confluence"], "6.3": ["confluence"], "6.6": ["confluence"],
+    "6.7": ["confluence", "okta"], "6.8": ["jira", "confluence"],
+    "7.1": ["browser", "confluence"], "7.2": ["browser", "confluence"],
+    "7.7": ["kandji", "confluence"], "7.14": ["kandji", "confluence"],
+    "8.1": ["kandji", "crowdstrike", "aws"],
+    "8.2": ["okta", "aws", "github"],
+    "8.4": ["github"], "8.5": ["okta", "aws", "google_workspace", "github"],
+    "8.7": ["crowdstrike", "kandji"],
+    "8.8": ["crowdstrike", "github", "semgrep", "jira"],
+    "8.9": ["aws", "kandji", "confluence"],
+    "8.12": ["google_workspace", "confluence"],
+    "8.13": ["aws", "confluence"],
+    "8.15": ["aws", "okta", "github"],
+    "8.16": ["crowdstrike", "aws", "jira"],
+    "8.20": ["cloudflare", "aws", "confluence"],
+    "8.22": ["cloudflare", "aws"],
+    "8.23": ["cloudflare", "confluence"],
+    "8.24": ["aws", "cloudflare", "confluence"],
+    "8.25": ["github", "semgrep", "confluence"],
+    "8.28": ["github", "semgrep"],
+    "8.29": ["semgrep", "jira", "confluence"],
+    "8.31": ["env0", "github"],
+    "8.32": ["github", "env0", "jira"],
+    "8.34": ["jira", "confluence"],
+}
+
+# NIST CSF 2.0 subcategory → systems map
+NIST_CSF2_SYSTEMS: dict[str, list[str]] = {
+    "GV.OC": ["confluence"], "GV.RM": ["confluence", "jira"],
+    "GV.RR": ["confluence"], "GV.PO": ["confluence"],
+    "GV.OV": ["confluence", "jira"], "GV.SC": ["confluence", "jira"],
+    "ID.AM": ["aws", "kandji", "github", "confluence"],
+    "ID.RA": ["crowdstrike", "semgrep", "jira", "confluence"],
+    "ID.IM": ["jira", "confluence"],
+    "PR.AA": ["okta", "aws", "github"],
+    "PR.AT": ["confluence"],
+    "PR.DS": ["aws", "cloudflare", "snowflake", "confluence"],
+    "PR.PS": ["kandji", "aws", "github", "semgrep", "confluence"],
+    "PR.IR": ["cloudflare", "aws", "confluence"],
+    "DE.CM": ["crowdstrike", "cloudflare", "aws", "okta"],
+    "DE.AE": ["crowdstrike", "aws", "jira"],
+    "RS.MA": ["jira", "confluence"],
+    "RS.AN": ["jira", "confluence"],
+    "RS.CO": ["jira", "confluence"],
+    "RS.MI": ["jira", "crowdstrike"],
+    "RC.RP": ["jira", "confluence"],
+    "RC.CO": ["confluence"],
+}
+
 # NYDFS 500.x section → systems map
 NYDFS_SECTION_SYSTEMS: dict[str, list[str]] = {
     "500.2": ["confluence"],
@@ -110,12 +171,43 @@ SYSTEM_KEYWORDS = {
         "confluence", "policy", "procedure", "runbook", "documentation",
         "handbook", "wiki", "infosec policy", "policy and procedures",
         "job scheduling process", "inactivity", "disabling of accounts",
+        "acceptable use", "information classification", "supplier", "vendor",
+        "business continuity", "disaster recovery plan", "incident response plan",
+        "retention", "legal", "regulatory", "training",
     ],
-    # Browser-required systems: internal apps and third-party consoles without a usable API
+    System.CROWDSTRIKE: [
+        "crowdstrike", "edr", "endpoint detection", "endpoint protection",
+        "antimalware", "anti-malware", "malware protection", "malware",
+        "endpoint coverage", "prevention policy", "detection", "falcon",
+        "vulnerability spotlight", "host group", "sensor",
+    ],
+    System.CLOUDFLARE: [
+        "cloudflare", "cdn", "waf", "web application firewall", "ddos",
+        "edge", "tls", "ssl", "zone", "firewall rule", "zero trust",
+        "web filtering", "gateway", "network security", "network connection",
+        "unauthorized network", "cloudflare access",
+    ],
+    System.SNOWFLAKE: [
+        "snowflake", "data warehouse", "warehouse", "snowflake user",
+        "snowflake role", "snowflake grant", "snowflake audit", "snowflake login",
+        "snowflake password policy", "snowflake network policy",
+    ],
+    System.KANDJI: [
+        "kandji", "mdm", "mobile device management", "device management",
+        "endpoint management", "macos", "workstation", "os patching",
+        "filevault", "full disk encryption", "gatekeeper", "blueprint",
+        "automated device enrollment", "ade", "device compliance",
+        "screen lock", "patch management",
+    ],
+    System.SEMGREP: [
+        "semgrep", "sast", "static analysis", "secure coding", "code scanning",
+        "application security", "sdlc security", "security testing",
+        "security gate", "pipeline security", "code vulnerability",
+    ],
+    # Browser-required: internal apps without usable APIs
     System.BROWSER: [
-        "mmax", "snowflake", "kandji", "mdm", "workstation", "os patching",
-        "staging environment", "test environment", "unauthorized network connection",
-        "network alert",
+        "mmax", "staging environment", "test environment",
+        "unauthorized network connection", "network alert",
     ],
 }
 
@@ -129,7 +221,12 @@ System reference:
 - "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
 - "confluence": policies, procedures, runbooks — anything asking for written documentation
 - "google_workspace": Gmail, Drive, admin console, 2SV, audit logs
-- "browser": MMAX (internal loan platform), Snowflake (data warehouse), Kandji/MDM, any system without a clean API
+- "crowdstrike": EDR/antimalware coverage, prevention policies, endpoint detections, vulnerability spotlight, host groups
+- "cloudflare": CDN/edge, WAF rules, TLS/SSL config, DDoS protection, Cloudflare Access/Zero Trust, web filtering
+- "snowflake": data warehouse user accounts, role grants, login history, query audit, password and network policies
+- "kandji": MDM device inventory, FileVault/encryption compliance, blueprints, patch management, automated enrollment
+- "semgrep": SAST findings by severity/repo, projects scanned, scan policies, pipeline coverage
+- "browser": MMAX (internal loan platform) or any other system without a usable API
 - "manual": items requiring human narrative response or physical evidence with no automatable source
 
 For each item return a JSON object with:
@@ -224,28 +321,56 @@ def classify_with_claude(rows: list[dict]) -> list[dict]:
 def _detect_framework(rows: list[dict]) -> str | None:
     """Detect if this is a known framework questionnaire from ID patterns."""
     ids = [str(r.get("id", "")).upper() for r in rows[:5]]
-    if any(re.match(r"CC\d|A1|C1|PI1", i) for i in ids):
+    if any(re.match(r"CC\d|A1\.|C1\.|PI1\.", i) for i in ids):
         return "soc2"
     if any(re.match(r"500\.", i) for i in ids):
         return "nydfs"
+    if any(re.match(r"^\d+\.\d+$", i) and float(i) >= 5.0 and float(i) < 9.0 for i in ids if re.match(r"^\d+\.\d+$", i)):
+        return "iso27001"
+    if any(re.match(r"(GV|ID|PR|DE|RS|RC)\.", i) for i in ids):
+        return "nist_csf2"
     return None
 
 
 def _framework_systems(item_id: str, framework: str) -> list[System]:
     """Look up systems for a known framework criteria code."""
     raw = []
+
     if framework == "soc2":
-        # Match on prefix: CC6.5 → try CC6.5, then CC6, then CC
         for prefix in [item_id, item_id.split(".")[0], item_id[:3]]:
             if prefix in SOC2_CRITERIA_SYSTEMS:
                 raw = SOC2_CRITERIA_SYSTEMS[prefix]
                 break
+
     elif framework == "nydfs":
         section = item_id if item_id.startswith("500.") else f"500.{item_id}"
-        # Match on full section or base (500.7a → 500.7)
         for key in [section, re.sub(r"[a-z]$", "", section)]:
             if key in NYDFS_SECTION_SYSTEMS:
                 raw = NYDFS_SECTION_SYSTEMS[key]
+                break
+
+    elif framework == "iso27001":
+        # Try exact match, then major.minor without patch, then major
+        parts = item_id.split(".")
+        candidates = [item_id]
+        if len(parts) >= 2:
+            candidates.append(f"{parts[0]}.{parts[1]}")
+        candidates.append(parts[0])
+        for key in candidates:
+            if key in ISO27001_CRITERIA_SYSTEMS:
+                raw = ISO27001_CRITERIA_SYSTEMS[key]
+                break
+
+    elif framework == "nist_csf2":
+        # GV.OC-1 → try "GV.OC-1", then "GV.OC", then "GV"
+        candidates = [item_id]
+        if "-" in item_id:
+            candidates.append(item_id.rsplit("-", 1)[0])
+        if "." in item_id:
+            candidates.append(item_id.split(".")[0])
+        for key in candidates:
+            if key in NIST_CSF2_SYSTEMS:
+                raw = NIST_CSF2_SYSTEMS[key]
                 break
 
     systems = []
@@ -323,4 +448,16 @@ def _infer_category(item_id: str, framework: str | None) -> str:
         }.get(prefix, "General")
     if framework == "nydfs":
         return "NYDFS 23 NYCRR 500"
+    if framework == "iso27001":
+        major = item_id.split(".")[0]
+        return {
+            "5": "Organizational Controls", "6": "People Controls",
+            "7": "Physical Controls", "8": "Technological Controls",
+        }.get(major, "ISO 27001")
+    if framework == "nist_csf2":
+        fn = item_id.split(".")[0]
+        return {
+            "GV": "Govern", "ID": "Identify", "PR": "Protect",
+            "DE": "Detect", "RS": "Respond", "RC": "Recover",
+        }.get(fn, "NIST CSF 2.0")
     return "General"

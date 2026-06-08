@@ -5,12 +5,17 @@ from typing import Optional
 
 class System(str, Enum):
     AWS = "aws"
-    GITHUB = "github"
     ENV0 = "env0"
+    GITHUB = "github"
     OKTA = "okta"
     GOOGLE_WORKSPACE = "google_workspace"
     JIRA = "jira"
     CONFLUENCE = "confluence"
+    CROWDSTRIKE = "crowdstrike"
+    CLOUDFLARE = "cloudflare"
+    SNOWFLAKE = "snowflake"
+    KANDJI = "kandji"
+    SEMGREP = "semgrep"
     BROWSER = "browser"
     MANUAL = "manual"
 

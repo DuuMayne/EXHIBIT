@@ -16,7 +16,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .collectors import AWSCollector, Env0Collector, GitHubCollector, GSuiteCollector, JiraCollector, OktaCollector
+from .collectors import (
+    AWSCollector, CloudflareCollector, CrowdStrikeCollector, Env0Collector,
+    GitHubCollector, GSuiteCollector, JiraCollector, KandjiCollector,
+    OktaCollector, SemgrepCollector, SnowflakeCollector,
+)
 from .drive_organizer import DriveOrganizer
 from .models import EvidenceResult, System
 from .questionnaire_parser import parse_questionnaire
@@ -32,18 +36,28 @@ COLLECTOR_MAP = {
     System.GOOGLE_WORKSPACE: GSuiteCollector,
     System.JIRA: JiraCollector,
     System.CONFLUENCE: JiraCollector,
+    System.CROWDSTRIKE: CrowdStrikeCollector,
+    System.CLOUDFLARE: CloudflareCollector,
+    System.SNOWFLAKE: SnowflakeCollector,
+    System.KANDJI: KandjiCollector,
+    System.SEMGREP: SemgrepCollector,
 }
 
 CREDENTIAL_CHECKS = {
-    System.ENV0: lambda: bool(os.getenv("ENV0_API_KEY")),
     System.AWS: lambda: __import__("boto3").Session(
         profile_name=os.getenv("AWS_PROFILE", "default")
     ).client("sts").get_caller_identity(),
+    System.ENV0: lambda: bool(os.getenv("ENV0_API_KEY")),
     System.GITHUB: lambda: bool(os.getenv("GITHUB_TOKEN")) and bool(os.getenv("GITHUB_ORG")),
     System.OKTA: lambda: bool(os.getenv("OKTA_DOMAIN")) and bool(os.getenv("OKTA_API_TOKEN")),
     System.GOOGLE_WORKSPACE: lambda: Path(os.getenv("GOOGLE_CREDENTIALS_PATH", "")).exists(),
     System.JIRA: lambda: bool(os.getenv("ATLASSIAN_DOMAIN")) and bool(os.getenv("ATLASSIAN_API_TOKEN")),
     System.CONFLUENCE: lambda: bool(os.getenv("ATLASSIAN_DOMAIN")) and bool(os.getenv("ATLASSIAN_API_TOKEN")),
+    System.CROWDSTRIKE: lambda: bool(os.getenv("CROWDSTRIKE_CLIENT_ID")) and bool(os.getenv("CROWDSTRIKE_CLIENT_SECRET")),
+    System.CLOUDFLARE: lambda: bool(os.getenv("CLOUDFLARE_API_TOKEN")),
+    System.SNOWFLAKE: lambda: bool(os.getenv("SNOWFLAKE_ACCOUNT")) and bool(os.getenv("SNOWFLAKE_USER")),
+    System.KANDJI: lambda: bool(os.getenv("KANDJI_API_TOKEN")) and bool(os.getenv("KANDJI_SUBDOMAIN")),
+    System.SEMGREP: lambda: bool(os.getenv("SEMGREP_API_TOKEN")) and bool(os.getenv("SEMGREP_ORG_SLUG")),
 }
 
 
