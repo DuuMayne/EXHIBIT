@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Okta evidence collector via REST API.
 Covers: MFA policies, password policies, users, groups, apps.

@@ -2,6 +2,7 @@
 Parse a CSV/Excel questionnaire into EvidenceRequest objects.
 Uses Claude to classify each item and map it to systems.
 """
+from __future__ import annotations
 import json
 import os
 import re
@@ -68,6 +69,7 @@ SYSTEM_KEYWORDS = {
         "macie", "inspector", "waf", "lambda", "rds", "encryption at rest",
         "encryption in transit", "mfa for root", "access key rotation",
         "cloud infrastructure", "cloud hosting", "backup", "disaster recovery",
+        "code changes", "database", "read-only access", "db access",
     ],
     System.GITHUB: [
         "github", "repository", "branch protection", "code review", "pr",
@@ -92,23 +94,42 @@ SYSTEM_KEYWORDS = {
         "sla", "incident", "change management", "risk register",
         "penetration test", "pentest", "vuln", "cve", "findings",
         "change request", "change ticket", "tabletop", "post-incident",
-        "root cause",
+        "root cause", "population of", "access modification",
+        "access changes", "restoration test", "scheduled jobs", "job scheduling",
+        "transfer sample", "sample evidence",
     ],
     System.CONFLUENCE: [
         "confluence", "policy", "procedure", "runbook", "documentation",
-        "handbook", "wiki", "infosec policy",
+        "handbook", "wiki", "infosec policy", "policy and procedures",
+        "job scheduling process", "inactivity", "disabling of accounts",
+    ],
+    # Browser-required systems: internal apps and third-party consoles without a usable API
+    System.BROWSER: [
+        "mmax", "snowflake", "kandji", "mdm", "workstation", "os patching",
+        "staging environment", "test environment", "unauthorized network connection",
+        "network alert",
     ],
 }
 
 CLASSIFICATION_PROMPT = """You are a compliance evidence analyst. Given a list of audit questions or evidence requests, classify each one.
 
-For each item return a JSON object with:
-- "id": the item ID/number from the input (or sequential if not present)
-- "category": the compliance category (e.g. "Access Control", "Encryption", "Logging & Monitoring", "Vulnerability Management", "Incident Response", "Asset Management", "HR Security", "Physical Security", "Business Continuity")
-- "systems": array of systems to query. Choose from: {systems}
-- "hints": array of 2-4 specific things to capture (e.g. "screenshot of MFA enforcement policy", "export of IAM users with MFA disabled", "branch protection settings for main branch")
+System reference:
+- "aws": IAM, CloudTrail, S3, RDS, ACM, CloudWatch, Config — any AWS infrastructure
+- "github": code changes, branch protections, deploy access, repo membership, staging branches, PR population
+- "okta": access reviews, user accounts, MFA, privileged access, provisioning/deprovisioning, inactivity policy
+- "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
+- "confluence": policies, procedures, runbooks — anything asking for written documentation
+- "google_workspace": Gmail, Drive, admin console, 2SV, audit logs
+- "browser": MMAX (internal loan platform), Snowflake (data warehouse), Kandji/MDM, any system without a clean API
+- "manual": items requiring human narrative response or physical evidence with no automatable source
 
-Return a JSON array, one object per item. Be specific in hints — they guide what the automated collectors will pull.
+For each item return a JSON object with:
+- "id": the item ID/number from the input
+- "category": the compliance category (e.g. "Access Control", "Change Management", "Logging & Monitoring", "Business Continuity", "IT Operations", "Network Security", "Vulnerability Management")
+- "systems": array of systems to query from the list above — include ALL relevant systems for the question
+- "hints": array of 3-5 specific artifacts to collect (e.g. "GitHub PR list filtered to 01/01/2026-present with author, approver, merge date", "Okta users report showing last login and MFA status", "Jira tickets labeled restoration-test from Q1 2026")
+
+Return a JSON array, one object per item. Be precise in hints — they are instructions to automated collectors.
 
 Questions to classify:
 {questions}"""
@@ -126,14 +147,23 @@ def load_questionnaire(path: str | Path) -> pd.DataFrame:
     # Normalize column names
     df.columns = [c.strip().lower() for c in df.columns]
 
-    # Find the question/description column
-    q_col = next(
-        (c for c in df.columns if any(k in c for k in ["question", "request", "description", "item", "control"])),
-        df.columns[-1],
+    # Find the question/description column — exact match first, then substring
+    q_col = (
+        "question" if "question" in df.columns
+        else next(
+            (c for c in df.columns if any(k == c for k in ["request", "description", "item", "text"])),
+            next(
+                (c for c in df.columns if any(k in c for k in ["question", "request", "description"])),
+                df.columns[-1],
+            ),
+        )
     )
     id_col = next(
-        (c for c in df.columns if any(k in c for k in ["id", "no", "num", "#", "ref"])),
-        None,
+        (c for c in df.columns if c == "id"),
+        next(
+            (c for c in df.columns if any(k in c for k in ["no", "num", "#", "ref"])),
+            None,
+        ),
     )
 
     result = pd.DataFrame()
