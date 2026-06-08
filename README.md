@@ -1,6 +1,6 @@
-# Compliance Evidence Agent
+# EXHIBIT — Evidence eXtraction, Harvesting and Intelligence-Based Investigation Tool
 
-Automatically collects evidence for security audits and compliance questionnaires. Instead of manually logging into a dozen systems and exporting screenshots, you give the agent a list of audit questions and it queries your systems via API, organizes everything into a Google Drive folder, and writes a plain-English explanation for each item so reviewers know exactly what they're looking at.
+Automatically collects evidence for security audits and compliance questionnaires. Instead of manually logging into a dozen systems and exporting screenshots, you give EXHIBIT a list of audit questions and it queries your systems via API, organizes everything into a Google Drive folder, and writes a plain-English explanation for each item so reviewers know exactly what they're looking at.
 
 **Systems it can query:** AWS, GitHub, env0, Okta, Google Workspace, Jira, Confluence, CrowdStrike, Cloudflare, Snowflake, Kandji, Semgrep, Lacework, and browser-based tools via Chrome automation.
 
@@ -55,18 +55,18 @@ Download and install from [docker.com/products/docker-desktop](https://www.docke
 
 If you have Git installed:
 ```bash
-git clone https://github.com/DuuMayne/compliance-agent.git
-cd compliance-agent
+git clone https://github.com/DuuMayne/EXHIBIT.git
+cd EXHIBIT
 ```
 
 If not, download the ZIP from GitHub and unzip it. Then open a terminal and navigate to the folder:
 ```bash
-cd ~/Downloads/compliance-agent
+cd ~/Downloads/EXHIBIT
 ```
 
 ### Step 3 — Build and start the agent container
 
-Run this once from inside the `compliance-agent` folder:
+Run this once from inside the `EXHIBIT` folder:
 ```bash
 docker compose up -d --build
 ```
@@ -81,11 +81,11 @@ To confirm it's running:
 ```bash
 docker compose ps
 ```
-You should see `compliance-mcp` with status `Up`.
+You should see `exhibit-mcp` with status `Up`.
 
 ### Step 4 — Add your credentials in Docker Desktop
 
-Open Docker Desktop → click **Containers** in the left sidebar → click **compliance-mcp** → click the **Inspect** tab → scroll to **Environment Variables**.
+Open Docker Desktop → click **Containers** in the left sidebar → click **exhibit-mcp** → click the **Inspect** tab → scroll to **Environment Variables**.
 
 Add each credential as a key/value pair. You only need to fill in the systems you use. See [section 4](#4-getting-your-api-credentials) for how to get each one.
 
@@ -124,7 +124,7 @@ The variables to set:
 
 > **Google service account JSON:** The JSON file from Google Cloud needs to be accessible inside the container. The easiest way is to mount it. In `docker-compose.yml`, uncomment this line under `volumes:` and update the path to where you saved the file:
 > ```yaml
-> - ~/.config/compliance-agent/google_sa.json:/run/secrets/google_sa.json:ro
+> - ~/.config/exhibit/google_sa.json:/run/secrets/google_sa.json:ro
 > ```
 > Then set `GOOGLE_CREDENTIALS_PATH` to `/run/secrets/google_sa.json`.
 
@@ -135,10 +135,10 @@ docker compose restart
 
 ### Step 5 — Connect Claude Code
 
-If you're using [Claude Code](https://claude.ai/code), the agent appears automatically as an MCP server because this project includes a `.claude.json` config file pointing to `http://localhost:8765`. Open (or restart) Claude Code from the `compliance-agent` directory and you'll see the agent's tools available.
+If you're using [Claude Code](https://claude.ai/code), the agent appears automatically as an MCP server because this project includes a `.claude.json` config file pointing to `http://localhost:8765`. Open (or restart) Claude Code from the `EXHIBIT` directory and you'll see the agent's tools available.
 
 To verify the connection is working, ask Claude:
-> "Check integration status for the compliance agent"
+> "Check integration status for EXHIBIT"
 
 It will call the `check_integration_status` tool and show you which credentials are configured.
 
@@ -150,7 +150,7 @@ Use this if you prefer not to use Docker or want to modify the agent code direct
 
 ### Step 1 — Create a Python virtual environment
 
-A virtual environment keeps this project's dependencies separate from your system Python. Run these commands from inside the `compliance-agent` folder:
+A virtual environment keeps this project's dependencies separate from your system Python. Run these commands from inside the `EXHIBIT` folder:
 
 ```bash
 python3 -m venv .venv
@@ -214,9 +214,9 @@ The agent uses a Google service account (a special non-human account) to create 
 3. In the search bar, search for **"Google Drive API"** and enable it
 4. Also enable **"Admin SDK API"** (needed for Google Workspace user reports)
 5. Go to **IAM & Admin → Service Accounts → Create Service Account**
-6. Give it a name like "compliance-agent" and click **Done**
+6. Give it a name like "exhibit-sa" and click **Done**
 7. Click on the new service account → **Keys** tab → **Add Key → Create new key → JSON**
-8. Save the downloaded JSON file somewhere safe (e.g. `~/.config/compliance-agent/google_sa.json`)
+8. Save the downloaded JSON file somewhere safe (e.g. `~/.config/exhibit/google_sa.json`)
 9. Set `GOOGLE_CREDENTIALS_PATH` to that file path
 
 **For Google Workspace evidence (user accounts, 2SV status, audit logs):**
@@ -347,7 +347,7 @@ Claude will call `upload_questionnaire` to save it, then proceed with collection
 
 First activate the virtual environment:
 ```bash
-cd ~/Projects/compliance-agent
+cd ~/Projects/EXHIBIT
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 ```
 
@@ -463,7 +463,7 @@ The container may not be running. Check:
 ```bash
 docker compose ps
 ```
-If `compliance-mcp` isn't listed as `Up`, start it:
+If `exhibit-mcp` isn't listed as `Up`, start it:
 ```bash
 docker compose up -d
 ```
@@ -480,7 +480,7 @@ Your prompt should show `(.venv)` when activated.
 ### A credential shows as MISSING in `--check-credentials`
 
 The environment variable for that system isn't set. Either:
-- **Docker**: Open Docker Desktop → Containers → compliance-mcp → Inspect → Env tab, and add the missing variable, then restart the container
+- **Docker**: Open Docker Desktop → Containers → exhibit-mcp → Inspect → Env tab, and add the missing variable, then restart the container
 - **Local**: Open `.env` in a text editor and add the value, then re-run the command
 
 ### "Google Drive upload failed" or "service account" error
