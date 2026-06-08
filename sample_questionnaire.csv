@@ -1,0 +1,19 @@
+id,question
+1.1,Provide evidence that multi-factor authentication is enforced for all user accounts with administrative access to production systems
+1.2,Provide your current IAM password policy showing minimum length, complexity, and rotation requirements
+1.3,Provide a list of all IAM users with their MFA enrollment status and last login date
+1.4,Provide evidence that access keys are rotated at least every 90 days
+2.1,Provide evidence that all S3 buckets storing customer data have encryption at rest enabled
+2.2,Provide your TLS certificate inventory showing all public-facing endpoints and certificate expiration dates
+2.3,Provide evidence that data in transit is encrypted using TLS 1.2 or higher
+3.1,Provide CloudTrail configuration showing that audit logging is enabled for all regions and all API activity
+3.2,Provide evidence of alerting on suspicious activity or failed authentication attempts
+4.1,Provide your branch protection policy for main/production branches in source control
+4.2,Provide evidence of required code review before merging to production
+4.3,Provide evidence of secret scanning being enabled in your source code repositories
+5.1,Provide your current MFA enrollment policy from your identity provider
+5.2,Provide evidence of SSO session timeout settings
+6.1,Provide evidence of your vulnerability management process including SLA targets for critical findings
+6.2,Provide a list of open critical and high severity vulnerabilities with their age and remediation status
+7.1,Provide your information security policy documentation
+7.2,Provide your incident response plan and evidence of at least one tabletop exercise in the last 12 months
