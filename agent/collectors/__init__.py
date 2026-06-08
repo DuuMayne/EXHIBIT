@@ -9,6 +9,7 @@ from .cloudflare_collector import CloudflareCollector
 from .snowflake_collector import SnowflakeCollector
 from .kandji_collector import KandjiCollector
 from .semgrep_collector import SemgrepCollector
+from .lacework_collector import LaceworkCollector
 from .browser_collector import BrowserCollector
 
 __all__ = [
@@ -23,5 +24,6 @@ __all__ = [
     "SnowflakeCollector",
     "KandjiCollector",
     "SemgrepCollector",
+    "LaceworkCollector",
     "BrowserCollector",
 ]

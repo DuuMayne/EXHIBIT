@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from .collectors import (
     AWSCollector, CloudflareCollector, CrowdStrikeCollector, Env0Collector,
     GitHubCollector, GSuiteCollector, JiraCollector, KandjiCollector,
-    OktaCollector, SemgrepCollector, SnowflakeCollector,
+    LaceworkCollector, OktaCollector, SemgrepCollector, SnowflakeCollector,
 )
 from .drive_organizer import DriveOrganizer
 from .models import EvidenceResult, System
@@ -41,6 +41,7 @@ COLLECTOR_MAP = {
     System.SNOWFLAKE: SnowflakeCollector,
     System.KANDJI: KandjiCollector,
     System.SEMGREP: SemgrepCollector,
+    System.LACEWORK: LaceworkCollector,
 }
 
 CREDENTIAL_CHECKS = {
@@ -58,6 +59,7 @@ CREDENTIAL_CHECKS = {
     System.SNOWFLAKE: lambda: bool(os.getenv("SNOWFLAKE_ACCOUNT")) and bool(os.getenv("SNOWFLAKE_USER")),
     System.KANDJI: lambda: bool(os.getenv("KANDJI_API_TOKEN")) and bool(os.getenv("KANDJI_SUBDOMAIN")),
     System.SEMGREP: lambda: bool(os.getenv("SEMGREP_API_TOKEN")) and bool(os.getenv("SEMGREP_ORG_SLUG")),
+    System.LACEWORK: lambda: bool(os.getenv("LACEWORK_ACCOUNT")) and bool(os.getenv("LACEWORK_API_KEY")) and bool(os.getenv("LACEWORK_API_SECRET")),
 }
 
 
