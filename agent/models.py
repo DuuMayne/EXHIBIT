@@ -6,6 +6,7 @@ from typing import Optional
 class System(str, Enum):
     AWS = "aws"
     GITHUB = "github"
+    ENV0 = "env0"
     OKTA = "okta"
     GOOGLE_WORKSPACE = "google_workspace"
     JIRA = "jira"

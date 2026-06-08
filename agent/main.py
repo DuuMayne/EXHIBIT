@@ -16,7 +16,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .collectors import AWSCollector, GitHubCollector, GSuiteCollector, JiraCollector, OktaCollector
+from .collectors import AWSCollector, Env0Collector, GitHubCollector, GSuiteCollector, JiraCollector, OktaCollector
 from .drive_organizer import DriveOrganizer
 from .models import EvidenceResult, System
 from .questionnaire_parser import parse_questionnaire
@@ -26,6 +26,7 @@ load_dotenv()
 
 COLLECTOR_MAP = {
     System.AWS: AWSCollector,
+    System.ENV0: Env0Collector,
     System.GITHUB: GitHubCollector,
     System.OKTA: OktaCollector,
     System.GOOGLE_WORKSPACE: GSuiteCollector,
@@ -34,6 +35,7 @@ COLLECTOR_MAP = {
 }
 
 CREDENTIAL_CHECKS = {
+    System.ENV0: lambda: bool(os.getenv("ENV0_API_KEY")),
     System.AWS: lambda: __import__("boto3").Session(
         profile_name=os.getenv("AWS_PROFILE", "default")
     ).client("sts").get_caller_identity(),
