@@ -1,13 +1,15 @@
-# Skill: compliance-evidence
+# Skill: exhibit
 
-Collect compliance evidence for a given questionnaire or information request list.
-Queries integrated systems via API and browser automation, then organizes
-everything into a structured Google Drive folder that mirrors the questionnaire layout.
+EXHIBIT — Evidence eXtraction, Harvesting and Intelligence-Based Investigation Tool.
+
+Collects compliance evidence for a given questionnaire or information request list.
+Queries integrated systems via API and browser automation, then organizes everything
+into a structured Google Drive folder that mirrors the questionnaire layout.
 
 ## When to invoke
-- User says: `/compliance-evidence <path> "<engagement name>"`
+- User says: `/exhibit <path> "<engagement name>"`
 - User pastes a questionnaire or asks to collect evidence for an audit
-- User says "run the compliance agent" or "collect evidence for [any] audit"
+- User says "run EXHIBIT" or "collect evidence for [any] audit"
 
 ## Integrated systems
 AWS, GitHub, env0, Okta, Google Workspace, Jira, Confluence,
@@ -28,7 +30,7 @@ Credentials live in Docker Desktop — no .env file needed.
 
 ```bash
 # First time: build the image and start the container
-cd ~/Projects/compliance-agent
+cd ~/Projects/EXHIBIT
 docker compose up -d --build
 
 # Claude Code picks it up automatically via .claude.json (http://localhost:8765/sse)
@@ -41,13 +43,13 @@ Then use MCP tools directly in conversation:
 - `dry_run_collection` — preview routing plan
 - `collect_evidence` — run full collection, returns Drive link
 
-Set credentials in Docker Desktop: open the container → **Inspect** → **Env** tab,
+Set credentials in Docker Desktop: open the `exhibit-mcp` container → **Inspect** → **Env** tab,
 or edit the `environment:` block in `docker-compose.yml` before starting.
 
 ## Alternative: run locally via CLI
 
 ```bash
-cd ~/Projects/compliance-agent
+cd ~/Projects/EXHIBIT
 source .venv/bin/activate
 python -m agent.main "<questionnaire_path>" "<engagement_name>"
 ```

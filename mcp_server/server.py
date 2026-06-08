@@ -1,6 +1,6 @@
 from __future__ import annotations
 """
-MCP server for the compliance evidence agent.
+MCP server for EXHIBIT — Evidence eXtraction, Harvesting and Intelligence-Based Investigation Tool.
 
 Runs inside Docker Desktop. Credentials are injected as container
 environment variables (set in Docker Desktop UI or docker-compose.yml)
@@ -29,8 +29,8 @@ from agent.models import System
 _FRAMEWORKS_DIR = Path("/app/frameworks")
 
 mcp = FastMCP(
-    "compliance-agent",
-    instructions="""Compliance evidence collection agent.
+    "exhibit",
+    instructions="""EXHIBIT — Evidence eXtraction, Harvesting and Intelligence-Based Investigation Tool.
 Queries integrated systems (AWS, GitHub, CrowdStrike, Okta, etc.) and organises
 all evidence into a structured Google Drive folder. Use dry_run first to verify routing,
 then collect_evidence for the real run.""",

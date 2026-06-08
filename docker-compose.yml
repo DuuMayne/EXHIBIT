@@ -1,8 +1,8 @@
 services:
-  compliance-mcp:
+  exhibit-mcp:
     build: .
-    image: compliance-agent-mcp:latest
-    container_name: compliance-mcp
+    image: exhibit-mcp:latest
+    container_name: exhibit-mcp
     ports:
       - "8765:8765"
     restart: unless-stopped
@@ -10,7 +10,7 @@ services:
       # Read-only access to framework questionnaire templates
       - ./frameworks:/app/frameworks:ro
       # Mount your Google service account JSON (set GOOGLE_CREDENTIALS_PATH=/run/secrets/google_sa.json)
-      # - ~/.config/compliance-agent/google_sa.json:/run/secrets/google_sa.json:ro
+      # - ~/.config/exhibit/google_sa.json:/run/secrets/google_sa.json:ro
     environment:
       MCP_PORT: "8765"
       PYTHONUNBUFFERED: "1"

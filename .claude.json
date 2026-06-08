@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "compliance-agent": {
+    "exhibit": {
       "url": "http://localhost:8765/sse"
     }
   }
