@@ -11,7 +11,8 @@ everything into a structured Google Drive folder that mirrors the questionnaire 
 
 ## Integrated systems
 AWS, GitHub, env0, Okta, Google Workspace, Jira, Confluence,
-CrowdStrike, Cloudflare, Snowflake, Kandji, Semgrep, Playwright (browser)
+CrowdStrike (EDR + SIEM), Cloudflare, Snowflake, Kandji, Semgrep,
+Lacework (CSPM), Playwright (browser)
 
 ## Pre-built framework templates
 Located in `frameworks/` — auto-detected from ID patterns, no extra flags needed:
@@ -73,6 +74,11 @@ with open('/tmp/questionnaire.csv', 'w') as f:
   02_<Category>/
     ...
 ```
+
+## In-house apps (MMAX, CASHI, School Hub, NEST)
+These Earnest-internal apps route to `browser` and require Playwright with the saved
+Chrome profile over corporate VPN. Alternatively, collect IAM/CloudTrail evidence from
+AWS directly using `--only aws` since they run in Earnest's AWS environment.
 
 ## Credential reference
 See `.env.example` for all credential vars. Run `--check-credentials` to see

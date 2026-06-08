@@ -16,6 +16,7 @@ class System(str, Enum):
     SNOWFLAKE = "snowflake"
     KANDJI = "kandji"
     SEMGREP = "semgrep"
+    LACEWORK = "lacework"
     BROWSER = "browser"
     MANUAL = "manual"
 

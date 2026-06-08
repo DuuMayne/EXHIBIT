@@ -28,8 +28,8 @@ SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
     "CC6.6": ["okta", "aws"],
     "CC6.7": ["aws", "github"],
     "CC6.8": ["browser", "jira"],   # EDR console (CrowdStrike/Jamf) + ticket evidence
-    "CC7.1": ["github", "jira", "aws"],
-    "CC7.2": ["aws", "jira"],
+    "CC7.1": ["crowdstrike", "lacework", "github", "jira", "aws"],
+    "CC7.2": ["crowdstrike", "lacework", "aws", "jira"],
     "CC7.3": ["jira"],
     "CC7.4": ["jira", "confluence"],
     "CC7.5": ["jira", "confluence"],
@@ -65,8 +65,8 @@ ISO27001_CRITERIA_SYSTEMS: dict[str, list[str]] = {
     "8.9": ["aws", "kandji", "confluence"],
     "8.12": ["google_workspace", "confluence"],
     "8.13": ["aws", "confluence"],
-    "8.15": ["aws", "okta", "github"],
-    "8.16": ["crowdstrike", "aws", "jira"],
+    "8.15": ["crowdstrike", "aws", "okta", "github"],
+    "8.16": ["lacework", "crowdstrike", "aws", "jira"],
     "8.20": ["cloudflare", "aws", "confluence"],
     "8.22": ["cloudflare", "aws"],
     "8.23": ["cloudflare", "confluence"],
@@ -92,8 +92,8 @@ NIST_CSF2_SYSTEMS: dict[str, list[str]] = {
     "PR.DS": ["aws", "cloudflare", "snowflake", "confluence"],
     "PR.PS": ["kandji", "aws", "github", "semgrep", "confluence"],
     "PR.IR": ["cloudflare", "aws", "confluence"],
-    "DE.CM": ["crowdstrike", "cloudflare", "aws", "okta"],
-    "DE.AE": ["crowdstrike", "aws", "jira"],
+    "DE.CM": ["lacework", "crowdstrike", "cloudflare", "aws", "okta"],
+    "DE.AE": ["lacework", "crowdstrike", "aws", "jira"],
     "RS.MA": ["jira", "confluence"],
     "RS.AN": ["jira", "confluence"],
     "RS.CO": ["jira", "confluence"],
@@ -116,7 +116,7 @@ NYDFS_SECTION_SYSTEMS: dict[str, list[str]] = {
     "500.11": ["confluence", "jira"],
     "500.12": ["okta", "aws", "google_workspace"],
     "500.13": ["aws", "confluence"],
-    "500.14": ["confluence", "okta", "aws"],
+    "500.14": ["crowdstrike", "confluence", "okta", "aws"],
     "500.15": ["aws"],
     "500.16": ["jira", "confluence"],
     "500.17": ["confluence"],
@@ -180,6 +180,10 @@ SYSTEM_KEYWORDS = {
         "antimalware", "anti-malware", "malware protection", "malware",
         "endpoint coverage", "prevention policy", "detection", "falcon",
         "vulnerability spotlight", "host group", "sensor",
+        # CrowdStrike as SIEM / centralized security monitoring
+        "siem", "log management", "centralized log", "security event",
+        "threat detection", "security monitoring", "security alert",
+        "incident detection", "threat intelligence", "xdr",
     ],
     System.CLOUDFLARE: [
         "cloudflare", "cdn", "waf", "web application firewall", "ddos",
@@ -204,9 +208,23 @@ SYSTEM_KEYWORDS = {
         "application security", "sdlc security", "security testing",
         "security gate", "pipeline security", "code vulnerability",
     ],
-    # Browser-required: internal apps without usable APIs
+    System.LACEWORK: [
+        "lacework", "cloud security posture", "cspm", "cloud posture",
+        "cloud compliance assessment", "cloud misconfiguration", "cloud benchmark",
+        "cis benchmark", "cloud security monitoring", "cloud threat detection",
+        "container vulnerability", "host vulnerability", "cloud alert",
+    ],
+    # Browser-required: systems without usable APIs or needing interactive session
     System.BROWSER: [
-        "mmax", "staging environment", "test environment",
+        # In-house Earnest apps (VPN + Playwright or AWS CLI)
+        "mmax", "school success disbursement", "cashi", "certification approval",
+        "school hub", "spoke", "nest",
+        # Other systems routed to browser
+        "1password", "argocd", "gitops", "new relic", "uptime", "apm",
+        "zendesk", "ticketing system", "bug bounty", "hackerone",
+        "pritunl", "vpn access log", "retool",
+        # Network/environment
+        "staging environment", "test environment",
         "unauthorized network connection", "network alert",
     ],
 }
@@ -221,12 +239,13 @@ System reference:
 - "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
 - "confluence": policies, procedures, runbooks — anything asking for written documentation
 - "google_workspace": Gmail, Drive, admin console, 2SV, audit logs
-- "crowdstrike": EDR/antimalware coverage, prevention policies, endpoint detections, vulnerability spotlight, host groups
+- "crowdstrike": EDR/antimalware coverage, prevention policies, endpoint detections, vulnerability spotlight, host groups; also serves as the SIEM — use for centralized logging, security monitoring, threat detection, and XDR questions
 - "cloudflare": CDN/edge, WAF rules, TLS/SSL config, DDoS protection, Cloudflare Access/Zero Trust, web filtering
 - "snowflake": data warehouse user accounts, role grants, login history, query audit, password and network policies
 - "kandji": MDM device inventory, FileVault/encryption compliance, blueprints, patch management, automated enrollment
 - "semgrep": SAST findings by severity/repo, projects scanned, scan policies, pipeline coverage
-- "browser": MMAX (internal loan platform) or any other system without a usable API
+- "lacework": cloud security posture (CSPM), compliance assessments, cloud alerts/violations, host and container vulnerability findings; use for cloud misconfiguration or cloud benchmark questions
+- "browser": MMAX (school success disbursement), CASHI (school hub interface), School Hub/Spoke, 1Password, ArgoCD, New Relic, Zendesk, HackerOne, Pritunl VPN, Retool, or any other internal app without a usable API
 - "manual": items requiring human narrative response or physical evidence with no automatable source
 
 For each item return a JSON object with:
