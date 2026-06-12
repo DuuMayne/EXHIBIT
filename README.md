@@ -31,9 +31,11 @@ Automatically collects evidence for security audits and compliance questionnaire
 
 **Required for any setup:**
 - A computer running macOS, Windows, or Linux
-- An [Anthropic API key](https://console.anthropic.com) (the AI that reads the questionnaire and writes the explainers)
-- A Google Cloud service account with Drive API access (explained in [section 4](#google-drive-service-account))
 - API credentials for at least one of the integrated systems (you only need to set up the systems you actually use)
+
+**Optional but recommended:**
+- An [Anthropic API key](https://console.anthropic.com) (improves question classification + generates explainer docs). Without it, EXHIBIT uses keyword-based routing and template explainers — still functional, just less nuanced.
+- A Google Cloud service account with Drive API access (explained in [section 4](#google-drive-service-account)). Only needed for the `upload` stage — you can collect evidence locally without it.
 
 **For the Docker setup (recommended):**
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
@@ -356,9 +358,22 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --dry-run
 ```
 
-**Run the full collection:**
+**Run the full pipeline (collect + upload to Drive):**
 ```bash
 python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026"
+```
+
+**Collect evidence locally without uploading (review first, upload later):**
+```bash
+python -m agent.main collect frameworks/soc2_type2.csv "Baker Tilly Q2 2026"
+# Evidence saved to ~/.exhibit/workspaces/<run_id>/
+# Inspect the files, then upload when ready:
+python -m agent.main upload 20260612_143022
+```
+
+**List previous collection runs:**
+```bash
+python -m agent.main runs
 ```
 
 **Collect from specific systems only (faster, useful for partial runs):**
@@ -366,9 +381,19 @@ python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026"
 python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --only aws,github,okta
 ```
 
-**Skip the AI classification step (faster, works offline):**
+**Resume a failed collection (skip already-completed items):**
+```bash
+python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --resume
+```
+
+**Skip the AI classification step (faster, works without an API key):**
 ```bash
 python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --no-claude
+```
+
+**Force fresh API calls (bypass cache):**
+```bash
+python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --no-cache
 ```
 
 **Check which credentials are configured:**
@@ -378,15 +403,17 @@ python -m agent.main --check-credentials
 
 ### Available framework templates
 
-These are ready to use — just swap out the CSV path:
+These are ready to use — just swap out the CSV path. Each framework template has a corresponding YAML mapping file that tells EXHIBIT exactly which systems to query for each control (no LLM required for routing):
 
-| File | Use for |
-|---|---|
-| `frameworks/earnest_audit_2026.csv` | Baker Tilly 2026 audit request list |
-| `frameworks/soc2_type2.csv` | SOC 2 Type II (38 criteria) |
-| `frameworks/nydfs_500.csv` | NYDFS 23 NYCRR 500 (25 sections) |
-| `frameworks/iso27001_2022.csv` | ISO 27001:2022 Annex A (54 controls) |
-| `frameworks/nist_csf_2.csv` | NIST CSF 2.0 (57 subcategories) |
+| File | Framework | Controls mapped |
+|---|---|---|
+| `frameworks/soc2_type2.csv` | SOC 2 Type II | 24 criteria → 14 systems |
+| `frameworks/iso27001_2022.csv` | ISO 27001:2022 Annex A | 55 controls → 14 systems |
+| `frameworks/nist_csf_2.csv` | NIST CSF 2.0 | 22 subcategories → 12 systems |
+| `frameworks/nydfs_500.csv` | NYDFS 23 NYCRR 500 | 17 sections → 9 systems |
+| `frameworks/earnest_audit_2026.csv` | Custom (Baker Tilly) | LLM/keyword routing |
+
+Framework detection is automatic — EXHIBIT identifies which framework a questionnaire belongs to from its item IDs and routes accordingly.
 
 ---
 
@@ -515,7 +542,38 @@ These internal Earnest applications don't have public APIs. For evidence:
 
 4. **Wire up the orchestrator** — add the collector to `COLLECTOR_MAP` and a credential check lambda to `CREDENTIAL_CHECKS` in `agent/main.py`.
 
-5. **Expose in the MCP server** — no changes needed; the MCP server calls through to `agent/main.py` automatically.
+5. **Update framework mappings** — add your system to the relevant controls in `frameworks/mappings/*.yml`. The loader validates all system names at startup, so typos are caught immediately.
+
+6. **Expose in the MCP server** — no changes needed; the MCP server calls through to `agent/main.py` automatically.
+
+### Adding a new framework
+
+To add support for a new compliance framework, just drop a YAML file in `frameworks/mappings/`:
+
+```yaml
+# frameworks/mappings/hipaa.yml
+framework: hipaa
+name: HIPAA Security Rule
+description: Security Rule safeguard-to-system mappings
+id_pattern: "^164\\.3"
+
+controls:
+  "164.312(a)(1)":
+    systems: [okta, aws]
+    category: Access Control
+  "164.312(a)(2)(i)":
+    systems: [okta, aws, github]
+    category: Access Control
+  "164.312(b)":
+    systems: [crowdstrike, aws]
+    category: Audit Controls
+```
+
+**Rules:**
+- Every system name must exist in the `System` enum — the loader will error on startup if you typo one
+- `id_pattern` is a regex used to auto-detect this framework from questionnaire item IDs
+- `category` is optional but recommended — it controls folder organization in the Drive output
+- No Python changes required; the registry picks up new YAML files automatically
 
 ### Running tests
 
@@ -526,24 +584,64 @@ python -m agent.main frameworks/soc2_type2.csv "Test SOC2" --dry-run --no-claude
 
 This exercises the full parsing and routing pipeline without making any API calls or Drive writes.
 
+### Environment variables reference
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `EXHIBIT_LLM_BACKEND` | auto-detect | LLM backend: `claude` or `heuristic` |
+| `EXHIBIT_CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Model for classification and explainers |
+| `EXHIBIT_MAX_WORKERS` | `5` | Thread pool size for parallel collection |
+| `EXHIBIT_CACHE_TTL` | `14400` (4 hours) | Response cache TTL in seconds |
+| `EXHIBIT_MAX_RETRIES` | `2` | Max retries for transient API failures |
+| `EXHIBIT_WORKSPACES_DIR` | `~/.exhibit/workspaces` | Pipeline workspace storage |
+| `EXHIBIT_RUNS_DIR` | `~/.exhibit/runs` | Persistent run log storage |
+| `EXHIBIT_CACHE_DIR` | `~/.exhibit/cache` | Response cache storage |
+| `BROWSER_URL_MAP` | — | JSON mapping of keywords to dashboard URLs for browser collector |
+
 ### Architecture overview
 
 ```
 agent/
-  main.py              — CLI entry point and orchestrator
+  main.py              — CLI entry point, pipeline stages, parallel orchestration
+  pipeline.py          — CollectionRun workspace: serializable state between stages
   models.py            — System enum, EvidenceRequest, EvidenceResult dataclasses
-  questionnaire_parser.py — CSV/Excel parsing, Claude classification, keyword routing
+  llm.py               — LLM abstraction layer (Classifier + ExplainerGenerator protocols)
+  questionnaire_parser.py — CSV/Excel parsing, LLM/heuristic routing
+  framework_loader.py  — YAML framework mapping loader with validation
   drive_organizer.py   — Google Drive folder creation and file upload
   report_generator.py  — explainer docs and master summary generation
+  cache.py             — File-based response cache with TTL
+  retry.py             — Retry with backoff + run state for --resume
+  run_logger.py        — Persistent JSON run logs
   collectors/
     aws_collector.py
+    browser_collector.py
     github_collector.py
     ... (one file per system)
 mcp_server/
   server.py            — FastMCP server exposing agent functions as MCP tools
 frameworks/
   *.csv                — pre-built questionnaire templates
+  mappings/*.yml       — framework control-to-system YAML mappings
 ```
+
+**Pipeline stages:**
+
+The collection process is split into three independent stages with serializable state between them:
+
+1. **Parse** — reads the questionnaire, detects the framework, classifies items → saves `requests.json` to workspace
+2. **Collect** — queries systems in parallel (5 threads by default), writes evidence files to workspace on disk
+3. **Upload** — generates explainer docs, uploads everything to Google Drive
+
+You can run all three in sequence (default), or run `collect` alone to review evidence locally before uploading. Each run creates a workspace at `~/.exhibit/workspaces/<run_id>/` with all evidence files accessible for inspection.
+
+**LLM backend:**
+
+EXHIBIT auto-detects whether an Anthropic API key is available:
+- **With key**: uses Claude for intelligent question classification and rich explainer generation
+- **Without key**: uses keyword matching + framework YAML maps for routing, and template-based explainers
+
+Override with `EXHIBIT_LLM_BACKEND=heuristic` or `EXHIBIT_LLM_BACKEND=claude`.
 
 ---
 
