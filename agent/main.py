@@ -4,27 +4,46 @@ Compliance evidence collection orchestrator.
 
 Usage:
     python -m agent.main <questionnaire.csv> "<Engagement Name>" [--dry-run] [--only aws,github]
+    python -m agent.main collect <questionnaire.csv> "<Engagement Name>" [--only aws,github]
+    python -m agent.main upload <run_id>
+    python -m agent.main runs
+
+Commands:
+    (default)         Full pipeline: parse → collect → upload (original behavior)
+    collect           Parse + collect only; saves evidence to workspace for review
+    upload            Upload a previous collection run to Google Drive
+    runs              List recent collection runs and their status
 
 Flags:
     --dry-run         Parse questionnaire and show collection plan; no API calls, no Drive writes.
     --only <systems>  Comma-separated list of systems to collect from (e.g. aws,github,okta).
     --no-claude       Skip Claude classification; use heuristic/framework routing only.
+    --no-cache        Bypass response cache; always make fresh API calls.
+    --resume          Resume a previous run, skipping already-completed items.
 """
 import os
+import pickle
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from .collectors import (
-    AWSCollector, CloudflareCollector, CrowdStrikeCollector, Env0Collector,
-    GitHubCollector, GSuiteCollector, JiraCollector, KandjiCollector,
-    LaceworkCollector, OktaCollector, SemgrepCollector, SnowflakeCollector,
+    AWSCollector, BrowserCollector, CloudflareCollector, CrowdStrikeCollector,
+    Env0Collector, GitHubCollector, GSuiteCollector, JiraCollector,
+    KandjiCollector, LaceworkCollector, OktaCollector, SemgrepCollector,
+    SnowflakeCollector,
 )
 from .drive_organizer import DriveOrganizer
-from .models import EvidenceResult, System
+from .models import EvidenceFile, EvidenceRequest, EvidenceResult, System
+from .pipeline import CollectionRun, Stage
 from .questionnaire_parser import parse_questionnaire
 from .report_generator import generate_explainer, generate_master_summary
+from .cache import ResponseCache
+from .retry import RunState, retry_collect
+from .run_logger import RunLogger
 
 load_dotenv()
 
@@ -42,6 +61,7 @@ COLLECTOR_MAP = {
     System.KANDJI: KandjiCollector,
     System.SEMGREP: SemgrepCollector,
     System.LACEWORK: LaceworkCollector,
+    System.BROWSER: BrowserCollector,
 }
 
 CREDENTIAL_CHECKS = {
@@ -60,6 +80,7 @@ CREDENTIAL_CHECKS = {
     System.KANDJI: lambda: bool(os.getenv("KANDJI_API_TOKEN")) and bool(os.getenv("KANDJI_SUBDOMAIN")),
     System.SEMGREP: lambda: bool(os.getenv("SEMGREP_API_TOKEN")) and bool(os.getenv("SEMGREP_ORG_SLUG")),
     System.LACEWORK: lambda: bool(os.getenv("LACEWORK_ACCOUNT")) and bool(os.getenv("LACEWORK_API_KEY")) and bool(os.getenv("LACEWORK_API_SECRET")),
+    System.BROWSER: lambda: True,
 }
 
 
@@ -91,6 +112,239 @@ def _init_collector(system: System, cache: dict):
                 cache[system] = None
     return cache.get(system)
 
+
+# ---------------------------------------------------------------------------
+# Stage 1: Parse
+# ---------------------------------------------------------------------------
+
+def stage_parse(
+    questionnaire_path: str,
+    engagement_name: str,
+    use_claude: bool = True,
+    run: CollectionRun | None = None,
+) -> CollectionRun:
+    """Parse a questionnaire into structured EvidenceRequests."""
+    if run is None:
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        run = CollectionRun(
+            run_id=run_id,
+            engagement=engagement_name,
+            questionnaire_path=questionnaire_path,
+            flags={"use_claude": use_claude},
+        )
+
+    print(f"[1/3] Parsing questionnaire: {questionnaire_path}")
+    run.requests = parse_questionnaire(questionnaire_path, use_claude=use_claude)
+    print(f"      {len(run.requests)} evidence requests identified")
+
+    run.stage = Stage.PARSED
+    run.save()
+    return run
+
+
+# ---------------------------------------------------------------------------
+# Stage 2: Collect
+# ---------------------------------------------------------------------------
+
+MAX_WORKERS = int(os.environ.get("EXHIBIT_MAX_WORKERS", "5"))
+
+
+def _collect_one(
+    collector,
+    req: EvidenceRequest,
+    system: System,
+) -> tuple[System, EvidenceResult | None, Exception | None]:
+    """Worker function for parallel collection. Returns (system, result, exception)."""
+    try:
+        result = retry_collect(collector, req, system)
+        return (system, result, None)
+    except Exception as e:
+        return (system, None, e)
+
+
+def stage_collect(
+    run: CollectionRun,
+    only_systems: list[System] | None = None,
+    use_cache: bool = True,
+    resume: bool = False,
+    max_workers: int = MAX_WORKERS,
+) -> CollectionRun:
+    """Collect evidence from configured systems and save to workspace.
+
+    Systems for each request are queried in parallel (up to max_workers threads).
+    """
+    if run.stage not in (Stage.PARSED, Stage.COLLECTED):
+        raise ValueError(f"Cannot collect from stage '{run.stage.value}' — need 'parsed' or 'collected'")
+
+    # Initialize subsystems
+    logger = RunLogger(
+        engagement=run.engagement,
+        questionnaire=run.questionnaire_path,
+        flags={"only_systems": [s.value for s in only_systems] if only_systems else None, "resume": resume},
+    )
+    logger.set_total_requests(len(run.requests))
+    run_state = RunState(run.engagement)
+    if resume:
+        print(f"      Resuming — {run_state.completed_count} items already completed")
+    else:
+        run_state.clear()
+    response_cache = ResponseCache() if use_cache else None
+    collector_cache: dict[System, object] = {}
+
+    if only_systems:
+        print(f"      Filtering to systems: {[s.value for s in only_systems]}")
+
+    print(f"\n[2/3] Collecting evidence ({len(run.requests)} items, {max_workers} workers)...")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for i, req in enumerate(run.requests, 1):
+            print(f"\n  [{i}/{len(run.requests)}] Q{req.id}: {req.question[:70]}...")
+
+            active_systems = [
+                s for s in req.systems
+                if not only_systems or s in only_systems
+            ]
+            print(f"           Systems: {[s.value for s in active_systems]}")
+
+            # Pre-filter: handle skips and cache hits synchronously
+            systems_to_fetch: list[tuple[System, object]] = []  # (system, collector)
+            for system in active_systems:
+                if system == System.MANUAL:
+                    print(f"           [{system.value}] Skipped — manual review required")
+                    logger.log_skip(req.id, system, "manual review required")
+                    continue
+
+                if run_state.is_done(req.id, system):
+                    print(f"           [{system.value}] Already done (resume)")
+                    logger.log_skip(req.id, system, "already completed (resume)")
+                    continue
+
+                collector = _init_collector(system, collector_cache)
+                if not collector:
+                    print(f"           [{system.value}] Skipped — credentials not available")
+                    logger.log_skip(req.id, system, "credentials not available")
+                    continue
+
+                # Check response cache
+                cached_data = response_cache.get(system.value, req.id, call_key="collect") if response_cache else None
+                if cached_data is not None:
+                    result = pickle.loads(cached_data)
+                    run.save_evidence(req.id, result)
+                    logger.log_result(req.id, system, result)
+                    run_state.mark_done(req.id, system)
+                    print(f"           [{system.value}] CACHED ({len(result.files)} files)")
+                    continue
+
+                systems_to_fetch.append((system, collector))
+
+            if not systems_to_fetch:
+                continue
+
+            # Dispatch remaining systems in parallel
+            futures = {}
+            for system, collector in systems_to_fetch:
+                logger.start_item(req.id, system)
+                future = executor.submit(_collect_one, collector, req, system)
+                futures[future] = system
+
+            # Gather results as they complete
+            for future in as_completed(futures):
+                system = futures[future]
+                sys_name = system.value
+                returned_system, result, exc = future.result()
+
+                if exc is not None:
+                    print(f"           [{sys_name}] FAILED: {exc}")
+                    err_result = EvidenceResult(request_id=req.id, system=system, error=str(exc))
+                    run.save_evidence(req.id, err_result)
+                    logger.log_result(req.id, system, err_result)
+                elif result is not None:
+                    run.save_evidence(req.id, result)
+                    logger.log_result(req.id, system, result)
+                    if result.error:
+                        print(f"           [{sys_name}] ERROR: {result.error}")
+                    else:
+                        if response_cache:
+                            response_cache.set(system.value, req.id, call_key="collect", data=pickle.dumps(result))
+                        run_state.mark_done(req.id, system)
+                        print(f"           [{sys_name}] OK ({len(result.files)} files)")
+
+    log_path = logger.finalize()
+    run.stage = Stage.COLLECTED
+    run.save()
+
+    # Print summary
+    all_results = run.load_all_evidence()
+    total = sum(len(r.files) for results in all_results.values() for r in results)
+    errors = sum(1 for results in all_results.values() for r in results if r.error)
+    print(f"\n      Evidence files: {total} | Errors: {errors}")
+    print(f"      Workspace: {run.workspace}")
+    print(f"      Run log: {log_path}")
+    return run
+
+
+# ---------------------------------------------------------------------------
+# Stage 3: Upload
+# ---------------------------------------------------------------------------
+
+def stage_upload(run: CollectionRun) -> CollectionRun:
+    """Generate explainers and upload evidence to Google Drive."""
+    if run.stage not in (Stage.COLLECTED, Stage.UPLOADED):
+        raise ValueError(f"Cannot upload from stage '{run.stage.value}' — need 'collected'")
+
+    all_results = run.load_all_evidence()
+
+    # Create Drive folder structure
+    print(f"\n[3/3] Uploading to Google Drive...")
+    organizer = DriveOrganizer()
+    root_folder_id = organizer.create_engagement_folder(run.engagement)
+    drive_link = organizer.get_folder_link(root_folder_id)
+    print(f"      Folder: {drive_link}")
+
+    # Generate explainers and upload
+    category_counter: dict[str, int] = {}
+    for req in run.requests:
+        results = all_results.get(req.id, [])
+        if not results or not any(r.files for r in results):
+            print(f"  Q{req.id}: No evidence, skipping")
+            continue
+
+        print(f"  Q{req.id}: Generating explainer...", end=" ", flush=True)
+        try:
+            # Check for cached explainer
+            explainer = run.load_explainer(req.id)
+            if not explainer:
+                explainer = generate_explainer(req, results)
+                run.save_explainer(req.id, explainer)
+
+            uploaded = organizer.upload_evidence(
+                root_folder_id, req, results, category_counter, explainer
+            )
+            for result in results:
+                result.drive_file_ids = uploaded
+            print(f"OK ({len(uploaded)} files)")
+        except Exception as e:
+            print(f"FAILED: {e}")
+
+    # Create master index
+    print(f"      Creating master index...")
+    summary_md, index_json = generate_master_summary(
+        run.engagement, run.requests, all_results, drive_link
+    )
+    organizer.upload_index(root_folder_id, index_json, summary_md)
+
+    run.drive_link = drive_link
+    run.stage = Stage.UPLOADED
+    run.save()
+
+    print(f"\n=== Upload Complete ===")
+    print(f"Drive folder: {drive_link}")
+    return run
+
+
+# ---------------------------------------------------------------------------
+# Convenience: full pipeline (backward-compatible)
+# ---------------------------------------------------------------------------
 
 def dry_run(questionnaire_path: str, engagement_name: str, use_claude: bool = True):
     """Parse and print the collection plan without making any API calls."""
@@ -125,99 +379,72 @@ def run(
     engagement_name: str,
     only_systems: list[System] | None = None,
     use_claude: bool = True,
-):
+    use_cache: bool = True,
+    resume: bool = False,
+) -> str:
+    """Full pipeline: parse → collect → upload. Returns Drive link."""
     print(f"\n=== Compliance Evidence Collection: {engagement_name} ===\n")
 
-    # 1. Parse questionnaire
-    print(f"[1/5] Parsing questionnaire: {questionnaire_path}")
-    requests = parse_questionnaire(questionnaire_path, use_claude=use_claude)
-    print(f"      {len(requests)} evidence requests identified")
+    collection_run = stage_parse(questionnaire_path, engagement_name, use_claude=use_claude)
+    collection_run = stage_collect(collection_run, only_systems=only_systems, use_cache=use_cache, resume=resume)
+    collection_run = stage_upload(collection_run)
 
-    if only_systems:
-        print(f"      Filtering to systems: {[s.value for s in only_systems]}")
+    print(f"\nOpen {collection_run.drive_link} to review evidence before submission.\n")
+    return collection_run.drive_link
 
-    # 2. Create Drive folder structure
-    print(f"\n[2/5] Creating Google Drive folder structure...")
-    organizer = DriveOrganizer()
-    root_folder_id = organizer.create_engagement_folder(engagement_name)
-    drive_link = organizer.get_folder_link(root_folder_id)
-    print(f"      Folder created: {drive_link}")
 
-    # 3. Collect evidence
-    print(f"\n[3/5] Collecting evidence ({len(requests)} items)...")
-    collector_cache: dict[System, object] = {}
-    all_results: dict[str, list[EvidenceResult]] = {}
-    category_counter: dict[str, int] = {}
+def collect_only(
+    questionnaire_path: str,
+    engagement_name: str,
+    only_systems: list[System] | None = None,
+    use_claude: bool = True,
+    use_cache: bool = True,
+    resume: bool = False,
+) -> CollectionRun:
+    """Parse + collect only. Returns the run for later upload."""
+    print(f"\n=== Evidence Collection (no upload): {engagement_name} ===\n")
 
-    for i, req in enumerate(requests, 1):
-        print(f"\n  [{i}/{len(requests)}] Q{req.id}: {req.question[:70]}...")
-        results = []
-
-        active_systems = [
-            s for s in req.systems
-            if not only_systems or s in only_systems
-        ]
-        print(f"           Systems: {[s.value for s in active_systems]}")
-
-        for system in active_systems:
-            if system in (System.MANUAL, System.BROWSER):
-                label = "manual review required" if system == System.MANUAL else "requires browser interaction"
-                print(f"           [{system.value}] Skipped — {label}")
-                continue
-
-            collector = _init_collector(system, collector_cache)
-            if not collector:
-                print(f"           [{system.value}] Skipped — credentials not available")
-                continue
-
-            print(f"           [{system.value}] Collecting...", end=" ", flush=True)
-            try:
-                result = collector.collect(req)
-                results.append(result)
-                if result.error:
-                    print(f"ERROR: {result.error}")
-                else:
-                    print(f"OK ({len(result.files)} files)")
-            except Exception as e:
-                print(f"FAILED: {e}")
-
-        all_results[req.id] = results
-
-    # 4. Generate explainers and upload
-    print(f"\n[4/5] Generating explainers and uploading to Drive...")
-    for req in requests:
-        results = all_results.get(req.id, [])
-        if not results or not any(r.files for r in results):
-            print(f"  Q{req.id}: No evidence collected, skipping upload")
-            continue
-
-        print(f"  Q{req.id}: Generating explainer...", end=" ", flush=True)
-        try:
-            explainer = generate_explainer(req, results)
-            uploaded = organizer.upload_evidence(
-                root_folder_id, req, results, category_counter, explainer
-            )
-            for result in results:
-                result.drive_file_ids = uploaded
-            print(f"OK ({len(uploaded)} files)")
-        except Exception as e:
-            print(f"FAILED: {e}")
-
-    # 5. Create master index
-    print(f"\n[5/5] Creating master index...")
-    summary_md, index_json = generate_master_summary(
-        engagement_name, requests, all_results, drive_link
-    )
-    organizer.upload_index(root_folder_id, index_json, summary_md)
+    collection_run = stage_parse(questionnaire_path, engagement_name, use_claude=use_claude)
+    collection_run = stage_collect(collection_run, only_systems=only_systems, use_cache=use_cache, resume=resume)
 
     print(f"\n=== Collection Complete ===")
-    print(f"Drive folder: {drive_link}")
-    total = sum(len(r.files) for results in all_results.values() for r in results)
-    errors = sum(1 for results in all_results.values() for r in results if r.error)
-    print(f"Evidence files: {total} | Errors: {errors}")
-    print(f"\nOpen {drive_link} to review evidence before submission.\n")
-    return drive_link
+    print(f"Workspace: {collection_run.workspace}")
+    print(f"Run ID: {collection_run.run_id}")
+    print(f"\nTo upload: python -m agent.main upload {collection_run.run_id}")
+    print(f"To inspect: ls {collection_run.evidence_dir}\n")
+    return collection_run
 
+
+def upload_run(run_id: str) -> str:
+    """Upload a previously collected run to Drive."""
+    print(f"\n=== Uploading run: {run_id} ===")
+    collection_run = CollectionRun.load(run_id)
+    print(f"Engagement: {collection_run.engagement}")
+    print(f"Requests: {len(collection_run.requests)}")
+
+    collection_run = stage_upload(collection_run)
+    print(f"\nOpen {collection_run.drive_link} to review evidence before submission.\n")
+    return collection_run.drive_link
+
+
+def list_runs():
+    """Print recent collection runs."""
+    runs = CollectionRun.list_runs()
+    if not runs:
+        print("\nNo collection runs found.\n")
+        return
+
+    print(f"\n=== Recent Runs ===\n")
+    print(f"{'Run ID':<20} {'Stage':<12} {'Engagement':<40} {'Created'}")
+    print("-" * 90)
+    for r in runs:
+        print(f"{r['run_id']:<20} {r['stage']:<12} {r['engagement'][:38]:<40} {r['created_at'][:19]}")
+    print()
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     args = sys.argv[1:]
@@ -230,6 +457,39 @@ if __name__ == "__main__":
         check_credentials()
         sys.exit(0)
 
+    # Subcommands
+    if args[0] == "runs":
+        list_runs()
+        sys.exit(0)
+
+    if args[0] == "upload":
+        if len(args) < 2:
+            print("Usage: python -m agent.main upload <run_id>")
+            sys.exit(1)
+        upload_run(args[1])
+        sys.exit(0)
+
+    if args[0] == "collect":
+        args = args[1:]  # shift past subcommand
+        if len(args) < 2:
+            print("Usage: python -m agent.main collect <questionnaire.csv> '<Engagement Name>' [--only aws,github]")
+            sys.exit(1)
+        questionnaire_path = args[0]
+        engagement_name = args[1]
+        no_claude = "--no-claude" in args
+        no_cache = "--no-cache" in args
+        is_resume = "--resume" in args
+        only_systems = _parse_only_systems(args)
+        collect_only(
+            questionnaire_path, engagement_name,
+            only_systems=only_systems,
+            use_claude=not no_claude,
+            use_cache=not no_cache,
+            resume=is_resume,
+        )
+        sys.exit(0)
+
+    # Default: full pipeline (original behavior)
     if len(args) < 2:
         print("Usage: python -m agent.main <questionnaire.csv> '<Engagement Name>' [--dry-run] [--only aws,github] [--no-claude]")
         sys.exit(1)
@@ -238,21 +498,34 @@ if __name__ == "__main__":
     engagement_name = args[1]
     is_dry_run = "--dry-run" in args
     no_claude = "--no-claude" in args
-    use_claude = not no_claude
+    no_cache = "--no-cache" in args
+    is_resume = "--resume" in args
 
-    only_systems = None
-    if "--only" in args:
-        idx = args.index("--only")
-        if idx + 1 < len(args):
-            only_systems = []
-            for name in args[idx + 1].split(","):
-                try:
-                    only_systems.append(System(name.strip()))
-                except ValueError:
-                    print(f"Unknown system '{name}'. Valid: {[s.value for s in System]}")
-                    sys.exit(1)
+    only_systems = _parse_only_systems(args)
 
     if is_dry_run:
-        dry_run(questionnaire_path, engagement_name, use_claude=use_claude)
+        dry_run(questionnaire_path, engagement_name, use_claude=not no_claude)
     else:
-        run(questionnaire_path, engagement_name, only_systems=only_systems, use_claude=use_claude)
+        run(
+            questionnaire_path, engagement_name,
+            only_systems=only_systems,
+            use_claude=not no_claude,
+            use_cache=not no_cache,
+            resume=is_resume,
+        )
+
+
+def _parse_only_systems(args: list[str]) -> list[System] | None:
+    if "--only" not in args:
+        return None
+    idx = args.index("--only")
+    if idx + 1 >= len(args):
+        return None
+    only_systems = []
+    for name in args[idx + 1].split(","):
+        try:
+            only_systems.append(System(name.strip()))
+        except ValueError:
+            print(f"Unknown system '{name}'. Valid: {[s.value for s in System]}")
+            sys.exit(1)
+    return only_systems
