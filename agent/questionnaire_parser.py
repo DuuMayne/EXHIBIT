@@ -118,13 +118,43 @@ SYSTEM_KEYWORDS = {
 
 
 def load_questionnaire(path: str | Path) -> pd.DataFrame:
-    path = Path(path)
+    """Load a questionnaire from CSV, Excel, or plain text.
+
+    Supported formats:
+      - .csv       — expects at least a question column (id column optional)
+      - .xlsx/.xls — same as CSV but Excel format
+      - .txt/.md   — one question per line (auto-numbered)
+      - "-"        — read from stdin (one question per line)
+
+    For plain text, lines starting with a number followed by . or ) are
+    parsed as "id. question" (e.g., "1. What is your MFA policy?").
+    Blank lines and lines starting with # are skipped.
+    """
+    path = Path(path) if path != "-" else None
+
+    # Handle stdin
+    if path is None:
+        import sys
+        lines = sys.stdin.read().splitlines()
+        return _lines_to_df(lines)
+
+    # Handle plain text files
+    if path.suffix in (".txt", ".md"):
+        lines = path.read_text().splitlines()
+        return _lines_to_df(lines)
+
+    # Handle structured formats (CSV/Excel)
     if path.suffix in (".xlsx", ".xls"):
         df = pd.read_excel(path)
     elif path.suffix == ".csv":
         df = pd.read_csv(path)
     else:
-        raise ValueError(f"Unsupported format: {path.suffix}")
+        # Try as plain text for any unrecognized extension
+        try:
+            lines = path.read_text().splitlines()
+            return _lines_to_df(lines)
+        except Exception:
+            raise ValueError(f"Unsupported format: {path.suffix}. Use .csv, .xlsx, .txt, or .md")
 
     # Normalize column names
     df.columns = [c.strip().lower() for c in df.columns]
@@ -155,6 +185,42 @@ def load_questionnaire(path: str | Path) -> pd.DataFrame:
     else:
         result["id"] = [str(i + 1) for i in range(len(result))]
     return result
+
+
+def _lines_to_df(lines: list[str]) -> pd.DataFrame:
+    """Convert plain text lines into a questionnaire DataFrame.
+
+    Handles formats like:
+      - "1. What is your MFA policy?"
+      - "1) What is your MFA policy?"
+      - "What is your MFA policy?" (auto-numbered)
+      - Lines starting with # are treated as comments/headers and skipped
+    """
+    import re
+
+    numbered_pattern = re.compile(r"^(\d+[\.\)]\s*)(.*)")
+    questions = []
+    ids = []
+
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        match = numbered_pattern.match(line)
+        if match:
+            # Extract the number as ID
+            num = re.match(r"\d+", match.group(1)).group()
+            ids.append(num)
+            questions.append(match.group(2).strip())
+        else:
+            ids.append(str(len(questions) + 1))
+            questions.append(line)
+
+    if not questions:
+        raise ValueError("No questions found in input. Provide one question per line.")
+
+    return pd.DataFrame({"id": ids, "question": questions})
 
 
 def _heuristic_systems(question: str) -> list[System]:
