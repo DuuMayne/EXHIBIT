@@ -1,0 +1,178 @@
+framework: iso27001
+name: ISO 27001:2022
+description: Annex A control-to-system mappings
+id_pattern: "^\\d+\\.\\d+"
+
+controls:
+  # Clause 5 — Organizational Controls
+  "5.1":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.2":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.3":
+    systems: [okta, github, confluence]
+    category: Organizational Controls
+  "5.4":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.7":
+    systems: [confluence, jira]
+    category: Organizational Controls
+  "5.9":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.10":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.12":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.14":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.15":
+    systems: [okta, aws, github, confluence]
+    category: Organizational Controls
+  "5.16":
+    systems: [okta, confluence]
+    category: Organizational Controls
+  "5.17":
+    systems: [okta, aws, confluence]
+    category: Organizational Controls
+  "5.18":
+    systems: [okta, aws, github]
+    category: Organizational Controls
+  "5.19":
+    systems: [confluence, jira]
+    category: Organizational Controls
+  "5.20":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.22":
+    systems: [confluence, jira]
+    category: Organizational Controls
+  "5.23":
+    systems: [aws, confluence]
+    category: Organizational Controls
+  "5.24":
+    systems: [confluence, jira]
+    category: Organizational Controls
+  "5.26":
+    systems: [jira, confluence]
+    category: Organizational Controls
+  "5.27":
+    systems: [jira, confluence]
+    category: Organizational Controls
+  "5.29":
+    systems: [jira, confluence]
+    category: Organizational Controls
+  "5.31":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.33":
+    systems: [confluence]
+    category: Organizational Controls
+  "5.35":
+    systems: [confluence, jira]
+    category: Organizational Controls
+  "5.36":
+    systems: [confluence]
+    category: Organizational Controls
+
+  # Clause 6 — People Controls
+  "6.1":
+    systems: [confluence]
+    category: People Controls
+  "6.3":
+    systems: [confluence]
+    category: People Controls
+  "6.6":
+    systems: [confluence]
+    category: People Controls
+  "6.7":
+    systems: [confluence, okta]
+    category: People Controls
+  "6.8":
+    systems: [jira, confluence]
+    category: People Controls
+
+  # Clause 7 — Physical Controls
+  "7.1":
+    systems: [browser, confluence]
+    category: Physical Controls
+  "7.2":
+    systems: [browser, confluence]
+    category: Physical Controls
+  "7.7":
+    systems: [kandji, confluence]
+    category: Physical Controls
+  "7.14":
+    systems: [kandji, confluence]
+    category: Physical Controls
+
+  # Clause 8 — Technological Controls
+  "8.1":
+    systems: [kandji, crowdstrike, aws]
+    category: Technological Controls
+  "8.2":
+    systems: [okta, aws, github]
+    category: Technological Controls
+  "8.4":
+    systems: [github]
+    category: Technological Controls
+  "8.5":
+    systems: [okta, aws, google_workspace, github]
+    category: Technological Controls
+  "8.7":
+    systems: [crowdstrike, kandji]
+    category: Technological Controls
+  "8.8":
+    systems: [crowdstrike, github, semgrep, jira]
+    category: Technological Controls
+  "8.9":
+    systems: [aws, kandji, confluence]
+    category: Technological Controls
+  "8.12":
+    systems: [google_workspace, confluence]
+    category: Technological Controls
+  "8.13":
+    systems: [aws, confluence]
+    category: Technological Controls
+  "8.15":
+    systems: [crowdstrike, aws, okta, github]
+    category: Technological Controls
+  "8.16":
+    systems: [lacework, crowdstrike, aws, jira]
+    category: Technological Controls
+  "8.20":
+    systems: [cloudflare, aws, confluence]
+    category: Technological Controls
+  "8.22":
+    systems: [cloudflare, aws]
+    category: Technological Controls
+  "8.23":
+    systems: [cloudflare, confluence]
+    category: Technological Controls
+  "8.24":
+    systems: [aws, cloudflare, confluence]
+    category: Technological Controls
+  "8.25":
+    systems: [github, semgrep, confluence]
+    category: Technological Controls
+  "8.28":
+    systems: [github, semgrep]
+    category: Technological Controls
+  "8.29":
+    systems: [semgrep, jira, confluence]
+    category: Technological Controls
+  "8.31":
+    systems: [env0, github]
+    category: Technological Controls
+  "8.32":
+    systems: [github, env0, jira]
+    category: Technological Controls
+  "8.34":
+    systems: [jira, confluence]
+    category: Technological Controls
