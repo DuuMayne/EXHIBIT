@@ -1,0 +1,273 @@
+framework: sig_lite
+name: SIG Lite (Shared Assessments)
+description: Standardized Information Gathering Lite questionnaire — vendor risk assessment domains mapped to systems
+id_pattern: "^[A-Z]\\."
+
+controls:
+  # A — Access Control
+  A.1:
+    systems: [okta, aws, github]
+    category: Access Control
+  A.2:
+    systems: [okta, aws]
+    category: Access Control
+  A.3:
+    systems: [okta]
+    category: Access Control
+  A.4:
+    systems: [okta, aws, github]
+    category: Access Control
+  A.5:
+    systems: [okta]
+    category: Access Control
+  A.6:
+    systems: [okta, aws]
+    category: Access Control
+  A.7:
+    systems: [okta, aws, google_workspace]
+    category: Access Control
+  A.8:
+    systems: [okta]
+    category: Access Control
+  A.9:
+    systems: [okta, aws, github]
+    category: Access Control
+
+  # B — Application Security
+  B.1:
+    systems: [github, semgrep]
+    category: Application Security
+  B.2:
+    systems: [github, semgrep, jira]
+    category: Application Security
+  B.3:
+    systems: [github, env0]
+    category: Application Security
+  B.4:
+    systems: [github, semgrep]
+    category: Application Security
+  B.5:
+    systems: [github, env0, jira]
+    category: Application Security
+
+  # C — Asset & Information Management
+  C.1:
+    systems: [aws, kandji, confluence]
+    category: Asset Management
+  C.2:
+    systems: [aws, kandji]
+    category: Asset Management
+  C.3:
+    systems: [confluence]
+    category: Asset Management
+  C.4:
+    systems: [aws, confluence]
+    category: Asset Management
+
+  # D — Business Continuity
+  D.1:
+    systems: [confluence]
+    category: Business Continuity
+  D.2:
+    systems: [confluence, jira]
+    category: Business Continuity
+  D.3:
+    systems: [aws, confluence]
+    category: Business Continuity
+  D.4:
+    systems: [confluence]
+    category: Business Continuity
+  D.5:
+    systems: [jira, confluence]
+    category: Business Continuity
+
+  # E — Compliance & Legal
+  E.1:
+    systems: [confluence]
+    category: Compliance
+  E.2:
+    systems: [confluence]
+    category: Compliance
+  E.3:
+    systems: [confluence, jira]
+    category: Compliance
+  E.4:
+    systems: [confluence]
+    category: Compliance
+
+  # F — Configuration & Change Management
+  F.1:
+    systems: [github, env0]
+    category: Change Management
+  F.2:
+    systems: [github, env0, jira]
+    category: Change Management
+  F.3:
+    systems: [aws, kandji]
+    category: Change Management
+  F.4:
+    systems: [github, env0]
+    category: Change Management
+  F.5:
+    systems: [jira, github]
+    category: Change Management
+
+  # G — Data Privacy
+  G.1:
+    systems: [confluence]
+    category: Data Privacy
+  G.2:
+    systems: [confluence, aws]
+    category: Data Privacy
+  G.3:
+    systems: [confluence]
+    category: Data Privacy
+  G.4:
+    systems: [confluence, google_workspace]
+    category: Data Privacy
+  G.5:
+    systems: [aws, snowflake, confluence]
+    category: Data Privacy
+
+  # H — Endpoint Security
+  H.1:
+    systems: [crowdstrike, kandji]
+    category: Endpoint Security
+  H.2:
+    systems: [crowdstrike, kandji]
+    category: Endpoint Security
+  H.3:
+    systems: [kandji]
+    category: Endpoint Security
+  H.4:
+    systems: [crowdstrike, kandji]
+    category: Endpoint Security
+  H.5:
+    systems: [kandji, crowdstrike]
+    category: Endpoint Security
+
+  # I — Governance & Risk Management
+  I.1:
+    systems: [confluence]
+    category: Governance
+  I.2:
+    systems: [confluence, jira]
+    category: Governance
+  I.3:
+    systems: [confluence]
+    category: Governance
+  I.4:
+    systems: [jira, confluence]
+    category: Governance
+
+  # J — Human Resources Security
+  J.1:
+    systems: [confluence]
+    category: HR Security
+  J.2:
+    systems: [confluence, okta]
+    category: HR Security
+  J.3:
+    systems: [okta, jira]
+    category: HR Security
+  J.4:
+    systems: [confluence]
+    category: HR Security
+
+  # K — Incident Management
+  K.1:
+    systems: [confluence, jira]
+    category: Incident Management
+  K.2:
+    systems: [jira, crowdstrike]
+    category: Incident Management
+  K.3:
+    systems: [jira, confluence]
+    category: Incident Management
+  K.4:
+    systems: [jira]
+    category: Incident Management
+
+  # L — Infrastructure & Network Security
+  L.1:
+    systems: [aws, cloudflare]
+    category: Network Security
+  L.2:
+    systems: [aws, cloudflare]
+    category: Network Security
+  L.3:
+    systems: [cloudflare, aws]
+    category: Network Security
+  L.4:
+    systems: [aws]
+    category: Network Security
+  L.5:
+    systems: [cloudflare, aws]
+    category: Network Security
+
+  # M — Logging & Monitoring
+  M.1:
+    systems: [crowdstrike, aws, lacework]
+    category: Logging & Monitoring
+  M.2:
+    systems: [crowdstrike, aws]
+    category: Logging & Monitoring
+  M.3:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  M.4:
+    systems: [crowdstrike, lacework]
+    category: Logging & Monitoring
+
+  # N — Encryption & Key Management
+  N.1:
+    systems: [aws, cloudflare]
+    category: Encryption
+  N.2:
+    systems: [aws]
+    category: Encryption
+  N.3:
+    systems: [aws]
+    category: Encryption
+  N.4:
+    systems: [aws, cloudflare]
+    category: Encryption
+
+  # O — Physical Security
+  O.1:
+    systems: [browser, confluence]
+    category: Physical Security
+  O.2:
+    systems: [browser, confluence]
+    category: Physical Security
+  O.3:
+    systems: [confluence]
+    category: Physical Security
+
+  # P — Third-Party Management
+  P.1:
+    systems: [confluence, jira]
+    category: Third-Party Risk
+  P.2:
+    systems: [confluence]
+    category: Third-Party Risk
+  P.3:
+    systems: [confluence, jira]
+    category: Third-Party Risk
+  P.4:
+    systems: [confluence]
+    category: Third-Party Risk
+
+  # Q — Vulnerability Management
+  Q.1:
+    systems: [crowdstrike, semgrep, jira]
+    category: Vulnerability Management
+  Q.2:
+    systems: [jira, crowdstrike]
+    category: Vulnerability Management
+  Q.3:
+    systems: [semgrep, github, jira]
+    category: Vulnerability Management
+  Q.4:
+    systems: [jira, crowdstrike, semgrep]
+    category: Vulnerability Management

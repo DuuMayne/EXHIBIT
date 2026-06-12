@@ -6,9 +6,11 @@ Automatically collects evidence for security audits and compliance questionnaire
 
 **Supported audit frameworks (pre-built templates included):**
 - SOC 2 Type II
-- NYDFS 23 NYCRR 500
 - ISO 27001:2022
 - NIST CSF 2.0
+- NYDFS 23 NYCRR 500
+- CSA CAIQ v4
+- SIG Lite (Shared Assessments)
 - Custom questionnaires (CSV or Excel)
 
 ---
@@ -407,13 +409,15 @@ These are ready to use — just swap out the CSV path. Each framework template h
 
 | File | Framework | Controls mapped |
 |---|---|---|
-| `frameworks/soc2_type2.csv` | SOC 2 Type II | 24 criteria → 14 systems |
-| `frameworks/iso27001_2022.csv` | ISO 27001:2022 Annex A | 55 controls → 14 systems |
-| `frameworks/nist_csf_2.csv` | NIST CSF 2.0 | 22 subcategories → 12 systems |
-| `frameworks/nydfs_500.csv` | NYDFS 23 NYCRR 500 | 17 sections → 9 systems |
+| `frameworks/soc2_type2.csv` | SOC 2 Type II | 40 criteria → 14 systems |
+| `frameworks/iso27001_2022.csv` | ISO 27001:2022 Annex A | 54 controls → 14 systems |
+| `frameworks/nist_csf_2.csv` | NIST CSF 2.0 | 57 subcategories → 12 systems |
+| `frameworks/nydfs_500.csv` | NYDFS 23 NYCRR 500 | 24 sections → 9 systems |
+| `frameworks/caiq_v4.csv` | CSA CAIQ v4 | 166 controls → 14 systems |
+| `frameworks/sig_lite.csv` | SIG Lite (Shared Assessments) | 78 questions → 14 systems |
 | `frameworks/earnest_audit_2026.csv` | Custom (Baker Tilly) | LLM/keyword routing |
 
-Framework detection is automatic — EXHIBIT identifies which framework a questionnaire belongs to from its item IDs and routes accordingly.
+Framework detection is automatic — EXHIBIT identifies which framework a questionnaire belongs to from its item IDs and routes accordingly. All framework mappings are validated against the system registry at startup — a typo in a YAML file will fail loud rather than silently misrouting.
 
 ---
 
