@@ -1,6 +1,7 @@
 """
 Parse a CSV/Excel questionnaire into EvidenceRequest objects.
 Uses a configurable LLM backend (or heuristics) to classify items and map to systems.
+Framework mappings loaded from YAML files in frameworks/mappings/.
 """
 from __future__ import annotations
 import json
@@ -12,116 +13,7 @@ import pandas as pd
 
 from .models import EvidenceRequest, System
 from .llm import get_classifier
-
-# SOC 2 CC criteria → systems map (used when framework=soc2 is detected)
-SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
-    "CC1": ["confluence", "jira"],
-    "CC2": ["confluence", "jira"],
-    "CC3": ["confluence", "jira"],
-    "CC4": ["confluence", "jira"],
-    "CC5": ["confluence", "github", "env0", "jira"],
-    "CC6.1": ["okta", "aws", "github"],
-    "CC6.2": ["okta", "jira"],
-    "CC6.3": ["okta", "aws", "jira"],
-    "CC6.4": ["browser"],           # physical access — browser to facility portal or subservice letter
-    "CC6.5": ["okta", "aws", "google_workspace", "github"],
-    "CC6.6": ["okta", "aws"],
-    "CC6.7": ["aws", "github"],
-    "CC6.8": ["browser", "jira"],   # EDR console (CrowdStrike/Jamf) + ticket evidence
-    "CC7.1": ["crowdstrike", "lacework", "github", "jira", "aws"],
-    "CC7.2": ["crowdstrike", "lacework", "aws", "jira"],
-    "CC7.3": ["jira"],
-    "CC7.4": ["jira", "confluence"],
-    "CC7.5": ["jira", "confluence"],
-    "CC8.1": ["github", "env0", "jira"],
-    "CC9.1": ["confluence", "jira"],
-    "CC9.2": ["confluence", "jira"],
-    "A1": ["aws", "jira", "confluence"],
-    "C1": ["aws", "confluence"],
-    "PI1": ["github", "jira"],
-}
-
-# ISO 27001:2022 Annex A → systems map
-ISO27001_CRITERIA_SYSTEMS: dict[str, list[str]] = {
-    "5.1": ["confluence"], "5.2": ["confluence"], "5.3": ["okta", "github", "confluence"],
-    "5.4": ["confluence"], "5.7": ["confluence", "jira"], "5.9": ["confluence"],
-    "5.10": ["confluence"], "5.12": ["confluence"], "5.14": ["confluence"],
-    "5.15": ["okta", "aws", "github", "confluence"], "5.16": ["okta", "confluence"],
-    "5.17": ["okta", "aws", "confluence"], "5.18": ["okta", "aws", "github"],
-    "5.19": ["confluence", "jira"], "5.20": ["confluence"], "5.22": ["confluence", "jira"],
-    "5.23": ["aws", "confluence"], "5.24": ["confluence", "jira"],
-    "5.26": ["jira", "confluence"], "5.27": ["jira", "confluence"],
-    "5.29": ["jira", "confluence"], "5.31": ["confluence"],
-    "5.33": ["confluence"], "5.35": ["confluence", "jira"], "5.36": ["confluence"],
-    "6.1": ["confluence"], "6.3": ["confluence"], "6.6": ["confluence"],
-    "6.7": ["confluence", "okta"], "6.8": ["jira", "confluence"],
-    "7.1": ["browser", "confluence"], "7.2": ["browser", "confluence"],
-    "7.7": ["kandji", "confluence"], "7.14": ["kandji", "confluence"],
-    "8.1": ["kandji", "crowdstrike", "aws"],
-    "8.2": ["okta", "aws", "github"],
-    "8.4": ["github"], "8.5": ["okta", "aws", "google_workspace", "github"],
-    "8.7": ["crowdstrike", "kandji"],
-    "8.8": ["crowdstrike", "github", "semgrep", "jira"],
-    "8.9": ["aws", "kandji", "confluence"],
-    "8.12": ["google_workspace", "confluence"],
-    "8.13": ["aws", "confluence"],
-    "8.15": ["crowdstrike", "aws", "okta", "github"],
-    "8.16": ["lacework", "crowdstrike", "aws", "jira"],
-    "8.20": ["cloudflare", "aws", "confluence"],
-    "8.22": ["cloudflare", "aws"],
-    "8.23": ["cloudflare", "confluence"],
-    "8.24": ["aws", "cloudflare", "confluence"],
-    "8.25": ["github", "semgrep", "confluence"],
-    "8.28": ["github", "semgrep"],
-    "8.29": ["semgrep", "jira", "confluence"],
-    "8.31": ["env0", "github"],
-    "8.32": ["github", "env0", "jira"],
-    "8.34": ["jira", "confluence"],
-}
-
-# NIST CSF 2.0 subcategory → systems map
-NIST_CSF2_SYSTEMS: dict[str, list[str]] = {
-    "GV.OC": ["confluence"], "GV.RM": ["confluence", "jira"],
-    "GV.RR": ["confluence"], "GV.PO": ["confluence"],
-    "GV.OV": ["confluence", "jira"], "GV.SC": ["confluence", "jira"],
-    "ID.AM": ["aws", "kandji", "github", "confluence"],
-    "ID.RA": ["crowdstrike", "semgrep", "jira", "confluence"],
-    "ID.IM": ["jira", "confluence"],
-    "PR.AA": ["okta", "aws", "github"],
-    "PR.AT": ["confluence"],
-    "PR.DS": ["aws", "cloudflare", "snowflake", "confluence"],
-    "PR.PS": ["kandji", "aws", "github", "semgrep", "confluence"],
-    "PR.IR": ["cloudflare", "aws", "confluence"],
-    "DE.CM": ["lacework", "crowdstrike", "cloudflare", "aws", "okta"],
-    "DE.AE": ["lacework", "crowdstrike", "aws", "jira"],
-    "RS.MA": ["jira", "confluence"],
-    "RS.AN": ["jira", "confluence"],
-    "RS.CO": ["jira", "confluence"],
-    "RS.MI": ["jira", "crowdstrike"],
-    "RC.RP": ["jira", "confluence"],
-    "RC.CO": ["confluence"],
-}
-
-# NYDFS 500.x section → systems map
-NYDFS_SECTION_SYSTEMS: dict[str, list[str]] = {
-    "500.2": ["confluence"],
-    "500.3": ["confluence"],
-    "500.4": ["confluence"],
-    "500.5": ["jira", "confluence"],
-    "500.6": ["aws", "okta", "github"],
-    "500.7": ["okta", "aws"],
-    "500.8": ["github", "env0", "confluence"],
-    "500.9": ["confluence", "jira"],
-    "500.10": ["confluence"],
-    "500.11": ["confluence", "jira"],
-    "500.12": ["okta", "aws", "google_workspace"],
-    "500.13": ["aws", "confluence"],
-    "500.14": ["crowdstrike", "confluence", "okta", "aws"],
-    "500.15": ["aws"],
-    "500.16": ["jira", "confluence"],
-    "500.17": ["confluence"],
-    "500.23": ["confluence"],
-}
+from .framework_loader import get_framework_registry
 
 SYSTEM_KEYWORDS = {
     System.AWS: [
@@ -180,7 +72,6 @@ SYSTEM_KEYWORDS = {
         "antimalware", "anti-malware", "malware protection", "malware",
         "endpoint coverage", "prevention policy", "detection", "falcon",
         "vulnerability spotlight", "host group", "sensor",
-        # CrowdStrike as SIEM / centralized security monitoring
         "siem", "log management", "centralized log", "security event",
         "threat detection", "security monitoring", "security alert",
         "incident detection", "threat intelligence", "xdr",
@@ -214,20 +105,17 @@ SYSTEM_KEYWORDS = {
         "cis benchmark", "cloud security monitoring", "cloud threat detection",
         "container vulnerability", "host vulnerability", "cloud alert",
     ],
-    # Browser-required: systems without usable APIs or needing interactive session
     System.BROWSER: [
-        # In-house Earnest apps (VPN + Playwright or AWS CLI)
         "mmax", "school success disbursement", "cashi", "certification approval",
         "school hub", "spoke", "nest",
-        # Other systems routed to browser
         "1password", "argocd", "gitops", "new relic", "uptime", "apm",
         "zendesk", "ticketing system", "bug bounty", "hackerone",
         "pritunl", "vpn access log", "retool",
-        # Network/environment
         "staging environment", "test environment",
         "unauthorized network connection", "network alert",
     ],
 }
+
 
 def load_questionnaire(path: str | Path) -> pd.DataFrame:
     path = Path(path)
@@ -285,78 +173,17 @@ def classify_with_llm(rows: list[dict]) -> list[dict]:
     return classifier.classify(rows)
 
 
-def _detect_framework(rows: list[dict]) -> str | None:
-    """Detect if this is a known framework questionnaire from ID patterns."""
-    ids = [str(r.get("id", "")).upper() for r in rows[:5]]
-    if any(re.match(r"CC\d|A1\.|C1\.|PI1\.", i) for i in ids):
-        return "soc2"
-    if any(re.match(r"500\.", i) for i in ids):
-        return "nydfs"
-    if any(re.match(r"^\d+\.\d+$", i) and float(i) >= 5.0 and float(i) < 9.0 for i in ids if re.match(r"^\d+\.\d+$", i)):
-        return "iso27001"
-    if any(re.match(r"(GV|ID|PR|DE|RS|RC)\.", i) for i in ids):
-        return "nist_csf2"
-    return None
-
-
-def _framework_systems(item_id: str, framework: str) -> list[System]:
-    """Look up systems for a known framework criteria code."""
-    raw = []
-
-    if framework == "soc2":
-        for prefix in [item_id, item_id.split(".")[0], item_id[:3]]:
-            if prefix in SOC2_CRITERIA_SYSTEMS:
-                raw = SOC2_CRITERIA_SYSTEMS[prefix]
-                break
-
-    elif framework == "nydfs":
-        section = item_id if item_id.startswith("500.") else f"500.{item_id}"
-        for key in [section, re.sub(r"[a-z]$", "", section)]:
-            if key in NYDFS_SECTION_SYSTEMS:
-                raw = NYDFS_SECTION_SYSTEMS[key]
-                break
-
-    elif framework == "iso27001":
-        # Try exact match, then major.minor without patch, then major
-        parts = item_id.split(".")
-        candidates = [item_id]
-        if len(parts) >= 2:
-            candidates.append(f"{parts[0]}.{parts[1]}")
-        candidates.append(parts[0])
-        for key in candidates:
-            if key in ISO27001_CRITERIA_SYSTEMS:
-                raw = ISO27001_CRITERIA_SYSTEMS[key]
-                break
-
-    elif framework == "nist_csf2":
-        # GV.OC-1 → try "GV.OC-1", then "GV.OC", then "GV"
-        candidates = [item_id]
-        if "-" in item_id:
-            candidates.append(item_id.rsplit("-", 1)[0])
-        if "." in item_id:
-            candidates.append(item_id.split(".")[0])
-        for key in candidates:
-            if key in NIST_CSF2_SYSTEMS:
-                raw = NIST_CSF2_SYSTEMS[key]
-                break
-
-    systems = []
-    for s in raw:
-        try:
-            systems.append(System(s))
-        except ValueError:
-            pass
-    return systems or [System.MANUAL]
-
-
 def parse_questionnaire(path: str | Path, use_claude: bool = True) -> list[EvidenceRequest]:
     df = load_questionnaire(path)
     rows = df.to_dict("records")
 
-    # Detect known frameworks (SOC 2, NYDFS) from ID patterns
-    framework = _detect_framework(rows)
+    # Detect framework from item IDs using the registry
+    registry = get_framework_registry()
+    item_ids = [str(r.get("id", "")) for r in rows[:10]]
+    framework = registry.detect(item_ids)
     if framework:
-        print(f"  [parser] Detected framework: {framework.upper()} — using pre-built system mapping")
+        mapping = registry.get(framework)
+        print(f"  [parser] Detected framework: {mapping.name} — using YAML mapping")
 
     # Pull category column if present (framework CSVs include it)
     has_category = "category" in df.columns
@@ -377,19 +204,23 @@ def parse_questionnaire(path: str | Path, use_claude: bool = True) -> list[Evide
         question = row["question"]
         cls = cls_map.get(item_id, {})
 
-        # System resolution priority: Claude → framework lookup → keyword heuristics
+        # System resolution priority: LLM → framework YAML lookup → keyword heuristics
         raw_systems = cls.get("systems", [])
         systems = [s for s in (System(v) for v in raw_systems if v in System._value2member_map_) if s]
         if not systems and framework:
-            systems = _framework_systems(item_id, framework)
+            systems = registry.lookup(framework, item_id)
         if not systems:
             systems = _heuristic_systems(question)
 
-        # Category: from CSV column > Claude > item ID prefix
+        # Category: from CSV column > LLM > framework YAML > fallback
         if has_category and row.get("category"):
             category = str(row["category"])
+        elif cls.get("category"):
+            category = cls["category"]
+        elif framework:
+            category = registry.category(framework, item_id) or "General"
         else:
-            category = cls.get("category") or _infer_category(item_id, framework)
+            category = "General"
 
         requests.append(EvidenceRequest(
             id=item_id,
@@ -400,31 +231,3 @@ def parse_questionnaire(path: str | Path, use_claude: bool = True) -> list[Evide
         ))
 
     return requests
-
-
-def _infer_category(item_id: str, framework: str | None) -> str:
-    if framework == "soc2":
-        prefix = item_id.upper().split(".")[0]
-        return {
-            "CC1": "Control Environment", "CC2": "Communication & Information",
-            "CC3": "Risk Assessment", "CC4": "Monitoring Activities",
-            "CC5": "Control Activities", "CC6": "Logical Access",
-            "CC7": "System Operations", "CC8": "Change Management",
-            "CC9": "Risk Mitigation", "A1": "Availability",
-            "C1": "Confidentiality", "PI1": "Processing Integrity",
-        }.get(prefix, "General")
-    if framework == "nydfs":
-        return "NYDFS 23 NYCRR 500"
-    if framework == "iso27001":
-        major = item_id.split(".")[0]
-        return {
-            "5": "Organizational Controls", "6": "People Controls",
-            "7": "Physical Controls", "8": "Technological Controls",
-        }.get(major, "ISO 27001")
-    if framework == "nist_csf2":
-        fn = item_id.split(".")[0]
-        return {
-            "GV": "Govern", "ID": "Identify", "PR": "Protect",
-            "DE": "Detect", "RS": "Respond", "RC": "Recover",
-        }.get(fn, "NIST CSF 2.0")
-    return "General"

@@ -1,0 +1,57 @@
+framework: nydfs
+name: NYDFS 23 NYCRR 500
+description: New York Department of Financial Services cybersecurity regulation section-to-system mappings
+id_pattern: "^500\\."
+
+controls:
+  "500.2":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.3":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.4":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.5":
+    systems: [jira, confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.6":
+    systems: [aws, okta, github]
+    category: NYDFS 23 NYCRR 500
+  "500.7":
+    systems: [okta, aws]
+    category: NYDFS 23 NYCRR 500
+  "500.8":
+    systems: [github, env0, confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.9":
+    systems: [confluence, jira]
+    category: NYDFS 23 NYCRR 500
+  "500.10":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.11":
+    systems: [confluence, jira]
+    category: NYDFS 23 NYCRR 500
+  "500.12":
+    systems: [okta, aws, google_workspace]
+    category: NYDFS 23 NYCRR 500
+  "500.13":
+    systems: [aws, confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.14":
+    systems: [crowdstrike, confluence, okta, aws]
+    category: NYDFS 23 NYCRR 500
+  "500.15":
+    systems: [aws]
+    category: NYDFS 23 NYCRR 500
+  "500.16":
+    systems: [jira, confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.17":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500
+  "500.23":
+    systems: [confluence]
+    category: NYDFS 23 NYCRR 500

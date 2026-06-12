@@ -1,0 +1,78 @@
+framework: soc2
+name: SOC 2 Type II
+description: Trust Services Criteria (TSC) control-to-system mappings
+id_pattern: "^CC\\d|^A1|^C1|^PI1"
+
+controls:
+  CC1:
+    systems: [confluence, jira]
+    category: Control Environment
+  CC2:
+    systems: [confluence, jira]
+    category: Communication & Information
+  CC3:
+    systems: [confluence, jira]
+    category: Risk Assessment
+  CC4:
+    systems: [confluence, jira]
+    category: Monitoring Activities
+  CC5:
+    systems: [confluence, github, env0, jira]
+    category: Control Activities
+  CC6.1:
+    systems: [okta, aws, github]
+    category: Logical Access
+  CC6.2:
+    systems: [okta, jira]
+    category: Logical Access
+  CC6.3:
+    systems: [okta, aws, jira]
+    category: Logical Access
+  CC6.4:
+    systems: [browser]
+    category: Logical Access
+  CC6.5:
+    systems: [okta, aws, google_workspace, github]
+    category: Logical Access
+  CC6.6:
+    systems: [okta, aws]
+    category: Logical Access
+  CC6.7:
+    systems: [aws, github]
+    category: Logical Access
+  CC6.8:
+    systems: [browser, jira]
+    category: Logical Access
+  CC7.1:
+    systems: [crowdstrike, lacework, github, jira, aws]
+    category: System Operations
+  CC7.2:
+    systems: [crowdstrike, lacework, aws, jira]
+    category: System Operations
+  CC7.3:
+    systems: [jira]
+    category: System Operations
+  CC7.4:
+    systems: [jira, confluence]
+    category: System Operations
+  CC7.5:
+    systems: [jira, confluence]
+    category: System Operations
+  CC8.1:
+    systems: [github, env0, jira]
+    category: Change Management
+  CC9.1:
+    systems: [confluence, jira]
+    category: Risk Mitigation
+  CC9.2:
+    systems: [confluence, jira]
+    category: Risk Mitigation
+  A1:
+    systems: [aws, jira, confluence]
+    category: Availability
+  C1:
+    systems: [aws, confluence]
+    category: Confidentiality
+  PI1:
+    systems: [github, jira]
+    category: Processing Integrity

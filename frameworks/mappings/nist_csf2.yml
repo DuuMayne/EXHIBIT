@@ -1,0 +1,83 @@
+framework: nist_csf2
+name: NIST CSF 2.0
+description: Cybersecurity Framework 2.0 function/subcategory-to-system mappings
+id_pattern: "^(GV|ID|PR|DE|RS|RC)\\."
+
+controls:
+  # Govern
+  GV.OC:
+    systems: [confluence]
+    category: Govern
+  GV.RM:
+    systems: [confluence, jira]
+    category: Govern
+  GV.RR:
+    systems: [confluence]
+    category: Govern
+  GV.PO:
+    systems: [confluence]
+    category: Govern
+  GV.OV:
+    systems: [confluence, jira]
+    category: Govern
+  GV.SC:
+    systems: [confluence, jira]
+    category: Govern
+
+  # Identify
+  ID.AM:
+    systems: [aws, kandji, github, confluence]
+    category: Identify
+  ID.RA:
+    systems: [crowdstrike, semgrep, jira, confluence]
+    category: Identify
+  ID.IM:
+    systems: [jira, confluence]
+    category: Identify
+
+  # Protect
+  PR.AA:
+    systems: [okta, aws, github]
+    category: Protect
+  PR.AT:
+    systems: [confluence]
+    category: Protect
+  PR.DS:
+    systems: [aws, cloudflare, snowflake, confluence]
+    category: Protect
+  PR.PS:
+    systems: [kandji, aws, github, semgrep, confluence]
+    category: Protect
+  PR.IR:
+    systems: [cloudflare, aws, confluence]
+    category: Protect
+
+  # Detect
+  DE.CM:
+    systems: [lacework, crowdstrike, cloudflare, aws, okta]
+    category: Detect
+  DE.AE:
+    systems: [lacework, crowdstrike, aws, jira]
+    category: Detect
+
+  # Respond
+  RS.MA:
+    systems: [jira, confluence]
+    category: Respond
+  RS.AN:
+    systems: [jira, confluence]
+    category: Respond
+  RS.CO:
+    systems: [jira, confluence]
+    category: Respond
+  RS.MI:
+    systems: [jira, crowdstrike]
+    category: Respond
+
+  # Recover
+  RC.RP:
+    systems: [jira, confluence]
+    category: Recover
+  RC.CO:
+    systems: [confluence]
+    category: Recover
