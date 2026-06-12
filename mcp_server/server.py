@@ -23,8 +23,9 @@ from mcp.server.fastmcp import FastMCP
 # Make the agent package importable from /app inside Docker
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agent.main import CREDENTIAL_CHECKS, check_credentials, dry_run, run
+from agent.main import CREDENTIAL_CHECKS, check_credentials, collect_only, dry_run, list_runs, run, upload_run
 from agent.models import System
+from agent.pipeline import CollectionRun
 
 _FRAMEWORKS_DIR = Path("/app/frameworks")
 
@@ -140,12 +141,11 @@ def collect_evidence(
     engagement_name: str,
     only_systems: Optional[str] = None,
     use_claude: bool = True,
+    upload: bool = True,
 ) -> str:
     """
-    Run the full evidence collection pipeline.
-
-    Queries all relevant systems, uploads evidence files, and creates a
-    structured Google Drive folder. Returns the Drive folder link when done.
+    Run evidence collection. By default does the full pipeline (collect + upload).
+    Set upload=False to collect only — you can review evidence locally then upload later.
 
     Args:
         questionnaire_path: Path to CSV/Excel questionnaire, or output of upload_questionnaire.
@@ -156,6 +156,8 @@ def collect_evidence(
                      Leave blank to collect from all configured systems.
         use_claude: Whether to use Claude for question classification (default True).
                    Set False for faster offline routing.
+        upload: Whether to upload to Google Drive (default True).
+               Set False to collect evidence to workspace only.
     """
     only = None
     if only_systems:
@@ -169,16 +171,61 @@ def collect_evidence(
 
     with _redirect_to_stderr():
         try:
-            drive_link = run(
-                questionnaire_path,
-                engagement_name,
-                only_systems=only,
-                use_claude=use_claude,
-            )
+            if upload:
+                drive_link = run(
+                    questionnaire_path,
+                    engagement_name,
+                    only_systems=only,
+                    use_claude=use_claude,
+                )
+                return f"Collection complete.\nDrive folder: {drive_link}"
+            else:
+                collection_run = collect_only(
+                    questionnaire_path,
+                    engagement_name,
+                    only_systems=only,
+                    use_claude=use_claude,
+                )
+                return (
+                    f"Collection complete (no upload).\n"
+                    f"Run ID: {collection_run.run_id}\n"
+                    f"Workspace: {collection_run.workspace}\n"
+                    f"Use upload_collected_run to upload when ready."
+                )
         except Exception as e:
             return f"Collection failed: {e}"
 
-    return f"Collection complete.\nDrive folder: {drive_link}"
+
+@mcp.tool()
+def upload_collected_run(run_id: str) -> str:
+    """
+    Upload a previously collected run to Google Drive.
+
+    Use list_collection_runs to find available run IDs.
+
+    Args:
+        run_id: The run ID from a previous collect_evidence(upload=False) call.
+    """
+    with _redirect_to_stderr():
+        try:
+            drive_link = upload_run(run_id)
+        except FileNotFoundError:
+            return f"Run '{run_id}' not found. Use list_collection_runs to see available runs."
+        except Exception as e:
+            return f"Upload failed: {e}"
+    return f"Upload complete.\nDrive folder: {drive_link}"
+
+
+@mcp.tool()
+def list_collection_runs() -> str:
+    """List recent evidence collection runs and their status."""
+    runs = CollectionRun.list_runs()
+    if not runs:
+        return "No collection runs found."
+    lines = ["Recent runs:", "", f"{'Run ID':<20} {'Stage':<12} {'Engagement':<40} {'Created'}", "-" * 90]
+    for r in runs:
+        lines.append(f"{r['run_id']:<20} {r['stage']:<12} {r['engagement'][:38]:<40} {r['created_at'][:19]}")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

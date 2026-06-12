@@ -1,6 +1,6 @@
 """
 Parse a CSV/Excel questionnaire into EvidenceRequest objects.
-Uses Claude to classify each item and map it to systems.
+Uses a configurable LLM backend (or heuristics) to classify items and map to systems.
 """
 from __future__ import annotations
 import json
@@ -8,10 +8,10 @@ import os
 import re
 from pathlib import Path
 
-import anthropic
 import pandas as pd
 
 from .models import EvidenceRequest, System
+from .llm import get_classifier
 
 # SOC 2 CC criteria → systems map (used when framework=soc2 is detected)
 SOC2_CRITERIA_SYSTEMS: dict[str, list[str]] = {
@@ -229,37 +229,6 @@ SYSTEM_KEYWORDS = {
     ],
 }
 
-CLASSIFICATION_PROMPT = """You are a compliance evidence analyst. Given a list of audit questions or evidence requests, classify each one.
-
-System reference:
-- "aws": IAM, CloudTrail, S3, RDS, ACM, CloudWatch, Config — any AWS infrastructure or database access
-- "env0": infrastructure-as-code deployments, Terraform/OpenTofu runs, environment inventory (prod/staging separation), IaC team permissions, deployment approvals, configuration drift — use for ANY infrastructure change or deploy-to-production question
-- "github": application code changes (PRs, commits), branch protections, SAST/secret scanning, repo membership, staging branches — use alongside env0 for change management questions
-- "okta": access reviews, user accounts, MFA, privileged access, provisioning/deprovisioning, inactivity policy
-- "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
-- "confluence": policies, procedures, runbooks — anything asking for written documentation
-- "google_workspace": Gmail, Drive, admin console, 2SV, audit logs
-- "crowdstrike": EDR/antimalware coverage, prevention policies, endpoint detections, vulnerability spotlight, host groups; also serves as the SIEM — use for centralized logging, security monitoring, threat detection, and XDR questions
-- "cloudflare": CDN/edge, WAF rules, TLS/SSL config, DDoS protection, Cloudflare Access/Zero Trust, web filtering
-- "snowflake": data warehouse user accounts, role grants, login history, query audit, password and network policies
-- "kandji": MDM device inventory, FileVault/encryption compliance, blueprints, patch management, automated enrollment
-- "semgrep": SAST findings by severity/repo, projects scanned, scan policies, pipeline coverage
-- "lacework": cloud security posture (CSPM), compliance assessments, cloud alerts/violations, host and container vulnerability findings; use for cloud misconfiguration or cloud benchmark questions
-- "browser": MMAX (school success disbursement), CASHI (school hub interface), School Hub/Spoke, 1Password, ArgoCD, New Relic, Zendesk, HackerOne, Pritunl VPN, Retool, or any other internal app without a usable API
-- "manual": items requiring human narrative response or physical evidence with no automatable source
-
-For each item return a JSON object with:
-- "id": the item ID/number from the input
-- "category": the compliance category (e.g. "Access Control", "Change Management", "Logging & Monitoring", "Business Continuity", "IT Operations", "Network Security", "Vulnerability Management")
-- "systems": array of systems to query from the list above — include ALL relevant systems for the question
-- "hints": array of 3-5 specific artifacts to collect (e.g. "GitHub PR list filtered to 01/01/2026-present with author, approver, merge date", "Okta users report showing last login and MFA status", "Jira tickets labeled restoration-test from Q1 2026")
-
-Return a JSON array, one object per item. Be precise in hints — they are instructions to automated collectors.
-
-Questions to classify:
-{questions}"""
-
-
 def load_questionnaire(path: str | Path) -> pd.DataFrame:
     path = Path(path)
     if path.suffix in (".xlsx", ".xls"):
@@ -309,32 +278,11 @@ def _heuristic_systems(question: str) -> list[System]:
     return matched or [System.MANUAL]
 
 
-def classify_with_claude(rows: list[dict]) -> list[dict]:
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-    system_names = [s.value for s in System if s != System.MANUAL]
-
-    questions_text = "\n".join(
-        f"{r['id']}. {r['question']}" for r in rows
-    )
-
-    message = client.messages.create(
-        model="claude-opus-4-8",
-        max_tokens=8192,
-        messages=[{
-            "role": "user",
-            "content": CLASSIFICATION_PROMPT.format(
-                systems=", ".join(system_names),
-                questions=questions_text,
-            ),
-        }],
-    )
-
-    raw = message.content[0].text
-    # Extract JSON from response (handle markdown code fences)
-    json_match = re.search(r"\[.*\]", raw, re.DOTALL)
-    if not json_match:
-        raise ValueError(f"Could not parse Claude classification response:\n{raw[:500]}")
-    return json.loads(json_match.group())
+def classify_with_llm(rows: list[dict]) -> list[dict]:
+    """Classify using the configured LLM backend."""
+    classifier = get_classifier()
+    print(f"  [parser] Using classifier: {classifier.name}")
+    return classifier.classify(rows)
 
 
 def _detect_framework(rows: list[dict]) -> str | None:
@@ -415,10 +363,10 @@ def parse_questionnaire(path: str | Path, use_claude: bool = True) -> list[Evide
 
     if use_claude:
         try:
-            classifications = classify_with_claude(rows)
+            classifications = classify_with_llm(rows)
             cls_map = {str(c["id"]): c for c in classifications}
         except Exception as e:
-            print(f"[warn] Claude classification failed ({e}), falling back to heuristics")
+            print(f"[warn] LLM classification failed ({e}), falling back to heuristics")
             cls_map = {}
     else:
         cls_map = {}
