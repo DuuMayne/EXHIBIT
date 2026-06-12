@@ -96,22 +96,22 @@ def check_integration_status() -> str:
 
 
 @mcp.tool()
-def upload_questionnaire(content: str, filename: str = "questionnaire.csv") -> str:
+def upload_questionnaire(content: str, filename: str = "questionnaire.txt") -> str:
     """
-    Save a questionnaire CSV (or pasted text) to a temp file inside the container.
+    Save a questionnaire to a temp file inside the container.
 
     Returns the path to use with dry_run or collect_evidence.
-    Accepts either valid CSV with id,question columns or plain text lines
-    (each line becomes a numbered question).
+
+    Accepts any of these formats:
+    - Plain text: one question per line (simplest — just paste questions)
+    - Numbered text: "1. What is your MFA policy?" (numbers become IDs)
+    - CSV with id,question columns (and optional category column)
+    - Lines starting with # are skipped as comments
+
+    No special formatting required — just paste your audit questions.
     """
     tmp = Path(tempfile.mkdtemp(prefix="compliance_")) / filename
-    if "," in content.splitlines()[0] if content.strip() else False:
-        tmp.write_text(content, encoding="utf-8")
-    else:
-        # Plain-text lines → auto-number into CSV
-        lines = [l.strip() for l in content.splitlines() if l.strip()]
-        rows = ["id,question"] + [f"{i},{json.dumps(l)}" for i, l in enumerate(lines, 1)]
-        tmp.write_text("\n".join(rows), encoding="utf-8")
+    tmp.write_text(content, encoding="utf-8")
     return str(tmp)
 
 

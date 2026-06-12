@@ -3,16 +3,27 @@ from __future__ import annotations
 Compliance evidence collection orchestrator.
 
 Usage:
-    python -m agent.main <questionnaire.csv> "<Engagement Name>" [--dry-run] [--only aws,github]
-    python -m agent.main collect <questionnaire.csv> "<Engagement Name>" [--only aws,github]
+    python -m agent.main <questionnaire> "<Engagement Name>" [--dry-run] [--only aws,github]
+    python -m agent.main collect <questionnaire> "<Engagement Name>" [--only aws,github]
     python -m agent.main upload <run_id>
     python -m agent.main runs
+    python -m agent.main new [output_path]
 
 Commands:
     (default)         Full pipeline: parse → collect → upload (original behavior)
     collect           Parse + collect only; saves evidence to workspace for review
     upload            Upload a previous collection run to Google Drive
     runs              List recent collection runs and their status
+    new               Create a template questionnaire file to fill in
+
+Questionnaire formats:
+    .csv              Standard CSV with id,question columns (category column optional)
+    .xlsx/.xls        Excel with same column structure
+    .txt/.md          Plain text — one question per line (auto-numbered)
+    -                 Read questions from stdin (pipe or paste)
+
+    Lines starting with # are treated as comments. Numbered lines (e.g. "1. ...")
+    are parsed with the number as the ID. Unrecognized formats are tried as text.
 
 Flags:
     --dry-run         Parse questionnaire and show collection plan; no API calls, no Drive writes.
@@ -20,6 +31,21 @@ Flags:
     --no-claude       Skip Claude classification; use heuristic/framework routing only.
     --no-cache        Bypass response cache; always make fresh API calls.
     --resume          Resume a previous run, skipping already-completed items.
+
+Examples:
+    # Use a pre-built framework template
+    python -m agent.main frameworks/soc2_type2.csv "Baker Tilly Q2 2026"
+
+    # Use a plain text file with one question per line
+    python -m agent.main my_questions.txt "Vendor Assessment 2026"
+
+    # Pipe questions from stdin
+    echo "Provide your MFA policy\\nProvide your encryption controls" | python -m agent.main - "Quick Check"
+
+    # Create a template, fill it in, then run
+    python -m agent.main new my_audit.csv
+    # (edit my_audit.csv)
+    python -m agent.main my_audit.csv "My Custom Audit" --dry-run
 """
 import os
 import pickle
@@ -442,6 +468,63 @@ def list_runs():
     print()
 
 
+TEMPLATE_CSV = """id,category,question
+1,Access Control,Provide evidence that multi-factor authentication is enforced for all users with access to production systems
+2,Access Control,Provide a current list of all user accounts with their role assignments and last login date
+3,Access Control,Provide evidence of your access review process and most recent review results
+4,Change Management,Provide evidence that code changes require peer review before deployment to production
+5,Change Management,Provide evidence of your change management approval process
+6,Encryption,Provide evidence that sensitive data is encrypted at rest and in transit
+7,Logging & Monitoring,Provide evidence that audit logging is enabled and logs are retained per your retention policy
+8,Vulnerability Management,Provide evidence of regular vulnerability scanning and remediation within defined SLAs
+9,Incident Response,Provide your incident response plan and evidence of testing within the past 12 months
+10,Business Continuity,Provide evidence of backup procedures and most recent restoration test
+""".lstrip()
+
+TEMPLATE_TXT = """# Custom Questionnaire — one question per line
+# Lines starting with # are comments and will be skipped
+# You can number lines (e.g., "1. question") or leave them unnumbered
+
+Provide evidence that multi-factor authentication is enforced for all production access
+Provide a list of all user accounts with role assignments and last login date
+Provide evidence of your access review process
+Provide evidence that code changes require peer review before production deployment
+Provide evidence of encryption at rest and in transit for sensitive data
+Provide evidence of centralized audit logging and your log retention policy
+Provide evidence of vulnerability scanning and remediation SLAs
+Provide your incident response plan and evidence of annual testing
+Provide evidence of backup and restoration testing
+"""
+
+
+def create_template(output_path: str | None = None):
+    """Create a questionnaire template file."""
+    if output_path is None:
+        output_path = "questionnaire.csv"
+
+    path = Path(output_path)
+    if path.exists():
+        print(f"Error: {path} already exists. Choose a different name or delete it first.")
+        sys.exit(1)
+
+    if path.suffix in (".txt", ".md"):
+        path.write_text(TEMPLATE_TXT)
+    else:
+        # Default to CSV
+        if not path.suffix:
+            path = path.with_suffix(".csv")
+        path.write_text(TEMPLATE_CSV)
+
+    print(f"\nCreated template: {path}")
+    print(f"\nEdit this file with your audit questions, then run:")
+    print(f"  python -m agent.main {path} \"Your Engagement Name\" --dry-run")
+    print(f"\nTips:")
+    print(f"  - The 'id' column can be any identifier (numbers, CC6.1, etc.)")
+    print(f"  - The 'category' column is optional but helps organize Drive output")
+    print(f"  - Be specific in questions — mention systems/artifacts you need")
+    print(f"  - Or use a .txt file with one question per line (simpler)\n")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -460,6 +543,11 @@ if __name__ == "__main__":
     # Subcommands
     if args[0] == "runs":
         list_runs()
+        sys.exit(0)
+
+    if args[0] == "new":
+        output = args[1] if len(args) > 1 else None
+        create_template(output)
         sys.exit(0)
 
     if args[0] == "upload":
