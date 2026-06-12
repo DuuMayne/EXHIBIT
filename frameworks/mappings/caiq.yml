@@ -1,0 +1,537 @@
+framework: caiq
+name: CSA CAIQ v4
+description: Cloud Security Alliance Consensus Assessments Initiative Questionnaire v4 — control domain to system mappings
+id_pattern: "^[A-Z]{2,4}-\\d"
+
+controls:
+  # A&A — Audit & Assurance
+  A&A-01:
+    systems: [confluence, jira]
+    category: Audit & Assurance
+  A&A-02:
+    systems: [confluence]
+    category: Audit & Assurance
+  A&A-03:
+    systems: [confluence, jira]
+    category: Audit & Assurance
+  A&A-04:
+    systems: [confluence]
+    category: Audit & Assurance
+  A&A-05:
+    systems: [confluence, jira]
+    category: Audit & Assurance
+  A&A-06:
+    systems: [confluence]
+    category: Audit & Assurance
+
+  # AIS — Application & Interface Security
+  AIS-01:
+    systems: [github, semgrep, confluence]
+    category: Application Security
+  AIS-02:
+    systems: [github, semgrep]
+    category: Application Security
+  AIS-03:
+    systems: [github, env0, jira]
+    category: Application Security
+  AIS-04:
+    systems: [github, semgrep, jira]
+    category: Application Security
+  AIS-05:
+    systems: [cloudflare, aws]
+    category: Application Security
+  AIS-06:
+    systems: [github, semgrep]
+    category: Application Security
+  AIS-07:
+    systems: [github, env0]
+    category: Application Security
+
+  # BCR — Business Continuity & Operational Resilience
+  BCR-01:
+    systems: [confluence]
+    category: Business Continuity
+  BCR-02:
+    systems: [confluence, jira]
+    category: Business Continuity
+  BCR-03:
+    systems: [aws, confluence]
+    category: Business Continuity
+  BCR-04:
+    systems: [aws, confluence]
+    category: Business Continuity
+  BCR-05:
+    systems: [confluence]
+    category: Business Continuity
+  BCR-06:
+    systems: [confluence, jira]
+    category: Business Continuity
+  BCR-07:
+    systems: [aws, jira]
+    category: Business Continuity
+  BCR-08:
+    systems: [aws, confluence]
+    category: Business Continuity
+  BCR-09:
+    systems: [aws]
+    category: Business Continuity
+  BCR-10:
+    systems: [confluence, jira]
+    category: Business Continuity
+  BCR-11:
+    systems: [confluence]
+    category: Business Continuity
+
+  # CCC — Change Control & Configuration Management
+  CCC-01:
+    systems: [confluence, github]
+    category: Change Management
+  CCC-02:
+    systems: [github, env0, jira]
+    category: Change Management
+  CCC-03:
+    systems: [github, env0]
+    category: Change Management
+  CCC-04:
+    systems: [github, jira]
+    category: Change Management
+  CCC-05:
+    systems: [env0, aws]
+    category: Change Management
+  CCC-06:
+    systems: [github, env0]
+    category: Change Management
+  CCC-07:
+    systems: [github, env0, jira]
+    category: Change Management
+  CCC-08:
+    systems: [aws, env0]
+    category: Change Management
+  CCC-09:
+    systems: [github, jira]
+    category: Change Management
+
+  # CEK — Cryptography, Encryption & Key Management
+  CEK-01:
+    systems: [confluence, aws]
+    category: Encryption
+  CEK-02:
+    systems: [aws]
+    category: Encryption
+  CEK-03:
+    systems: [aws, cloudflare]
+    category: Encryption
+  CEK-04:
+    systems: [aws]
+    category: Encryption
+  CEK-05:
+    systems: [aws]
+    category: Encryption
+  CEK-06:
+    systems: [aws]
+    category: Encryption
+  CEK-07:
+    systems: [aws, confluence]
+    category: Encryption
+  CEK-08:
+    systems: [aws]
+    category: Encryption
+
+  # DCS — Datacenter Security
+  DCS-01:
+    systems: [browser, confluence]
+    category: Physical Security
+  DCS-02:
+    systems: [browser, confluence]
+    category: Physical Security
+  DCS-03:
+    systems: [confluence]
+    category: Physical Security
+  DCS-04:
+    systems: [aws, confluence]
+    category: Physical Security
+  DCS-05:
+    systems: [confluence]
+    category: Physical Security
+  DCS-06:
+    systems: [confluence]
+    category: Physical Security
+  DCS-07:
+    systems: [confluence]
+    category: Physical Security
+  DCS-08:
+    systems: [confluence, aws]
+    category: Physical Security
+
+  # DSP — Data Security & Privacy
+  DSP-01:
+    systems: [confluence]
+    category: Data Security
+  DSP-02:
+    systems: [confluence, aws]
+    category: Data Security
+  DSP-03:
+    systems: [aws, snowflake, confluence]
+    category: Data Security
+  DSP-04:
+    systems: [aws, confluence]
+    category: Data Security
+  DSP-05:
+    systems: [aws, google_workspace]
+    category: Data Security
+  DSP-06:
+    systems: [confluence]
+    category: Data Security
+  DSP-07:
+    systems: [aws, snowflake]
+    category: Data Security
+  DSP-08:
+    systems: [confluence]
+    category: Data Security
+  DSP-09:
+    systems: [confluence]
+    category: Data Security
+  DSP-10:
+    systems: [aws, confluence]
+    category: Data Security
+  DSP-11:
+    systems: [confluence]
+    category: Data Security
+  DSP-12:
+    systems: [confluence]
+    category: Data Security
+  DSP-13:
+    systems: [confluence]
+    category: Data Security
+  DSP-14:
+    systems: [confluence]
+    category: Data Security
+  DSP-15:
+    systems: [confluence, jira]
+    category: Data Security
+  DSP-16:
+    systems: [confluence]
+    category: Data Security
+  DSP-17:
+    systems: [aws, confluence]
+    category: Data Security
+
+  # GRC — Governance, Risk & Compliance
+  GRC-01:
+    systems: [confluence]
+    category: Governance
+  GRC-02:
+    systems: [confluence]
+    category: Governance
+  GRC-03:
+    systems: [confluence, jira]
+    category: Governance
+  GRC-04:
+    systems: [confluence]
+    category: Governance
+  GRC-05:
+    systems: [confluence, jira]
+    category: Governance
+  GRC-06:
+    systems: [confluence]
+    category: Governance
+  GRC-07:
+    systems: [confluence]
+    category: Governance
+  GRC-08:
+    systems: [confluence]
+    category: Governance
+
+  # HRS — Human Resources
+  HRS-01:
+    systems: [confluence]
+    category: Human Resources
+  HRS-02:
+    systems: [confluence]
+    category: Human Resources
+  HRS-03:
+    systems: [confluence]
+    category: Human Resources
+  HRS-04:
+    systems: [confluence, okta]
+    category: Human Resources
+  HRS-05:
+    systems: [confluence]
+    category: Human Resources
+  HRS-06:
+    systems: [confluence]
+    category: Human Resources
+  HRS-07:
+    systems: [okta, jira, confluence]
+    category: Human Resources
+  HRS-08:
+    systems: [okta, jira]
+    category: Human Resources
+  HRS-09:
+    systems: [confluence]
+    category: Human Resources
+  HRS-10:
+    systems: [confluence, jira]
+    category: Human Resources
+  HRS-11:
+    systems: [confluence]
+    category: Human Resources
+  HRS-12:
+    systems: [okta, confluence]
+    category: Human Resources
+  HRS-13:
+    systems: [confluence]
+    category: Human Resources
+
+  # IAM — Identity & Access Management
+  IAM-01:
+    systems: [okta, confluence]
+    category: Identity & Access
+  IAM-02:
+    systems: [okta, aws, github]
+    category: Identity & Access
+  IAM-03:
+    systems: [okta]
+    category: Identity & Access
+  IAM-04:
+    systems: [okta, aws]
+    category: Identity & Access
+  IAM-05:
+    systems: [okta]
+    category: Identity & Access
+  IAM-06:
+    systems: [okta, aws, github]
+    category: Identity & Access
+  IAM-07:
+    systems: [okta]
+    category: Identity & Access
+  IAM-08:
+    systems: [okta, aws]
+    category: Identity & Access
+  IAM-09:
+    systems: [okta, aws, github, google_workspace]
+    category: Identity & Access
+  IAM-10:
+    systems: [okta]
+    category: Identity & Access
+  IAM-11:
+    systems: [okta, jira]
+    category: Identity & Access
+  IAM-12:
+    systems: [okta, aws]
+    category: Identity & Access
+  IAM-13:
+    systems: [okta]
+    category: Identity & Access
+  IAM-14:
+    systems: [okta, aws, confluence]
+    category: Identity & Access
+  IAM-15:
+    systems: [okta]
+    category: Identity & Access
+  IAM-16:
+    systems: [okta, aws, github]
+    category: Identity & Access
+
+  # IPY — Interoperability & Portability
+  IPY-01:
+    systems: [confluence]
+    category: Interoperability
+  IPY-02:
+    systems: [confluence, aws]
+    category: Interoperability
+  IPY-03:
+    systems: [confluence]
+    category: Interoperability
+  IPY-04:
+    systems: [confluence, aws]
+    category: Interoperability
+
+  # IVS — Infrastructure & Virtualization Security
+  IVS-01:
+    systems: [aws, cloudflare]
+    category: Infrastructure Security
+  IVS-02:
+    systems: [aws, cloudflare]
+    category: Infrastructure Security
+  IVS-03:
+    systems: [aws]
+    category: Infrastructure Security
+  IVS-04:
+    systems: [aws, confluence]
+    category: Infrastructure Security
+  IVS-05:
+    systems: [aws, kandji]
+    category: Infrastructure Security
+  IVS-06:
+    systems: [aws, cloudflare]
+    category: Infrastructure Security
+  IVS-07:
+    systems: [aws]
+    category: Infrastructure Security
+  IVS-08:
+    systems: [aws, lacework]
+    category: Infrastructure Security
+  IVS-09:
+    systems: [aws, cloudflare]
+    category: Infrastructure Security
+
+  # LOG — Logging & Monitoring
+  LOG-01:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  LOG-02:
+    systems: [aws, crowdstrike, lacework]
+    category: Logging & Monitoring
+  LOG-03:
+    systems: [crowdstrike, aws]
+    category: Logging & Monitoring
+  LOG-04:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  LOG-05:
+    systems: [aws, crowdstrike, confluence]
+    category: Logging & Monitoring
+  LOG-06:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  LOG-07:
+    systems: [crowdstrike, aws]
+    category: Logging & Monitoring
+  LOG-08:
+    systems: [aws]
+    category: Logging & Monitoring
+  LOG-09:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  LOG-10:
+    systems: [crowdstrike, jira]
+    category: Logging & Monitoring
+  LOG-11:
+    systems: [aws]
+    category: Logging & Monitoring
+  LOG-12:
+    systems: [aws, crowdstrike]
+    category: Logging & Monitoring
+  LOG-13:
+    systems: [confluence, aws]
+    category: Logging & Monitoring
+
+  # SEF — Security Incident Management
+  SEF-01:
+    systems: [confluence]
+    category: Incident Management
+  SEF-02:
+    systems: [confluence, jira]
+    category: Incident Management
+  SEF-03:
+    systems: [jira, crowdstrike]
+    category: Incident Management
+  SEF-04:
+    systems: [jira, confluence]
+    category: Incident Management
+  SEF-05:
+    systems: [jira]
+    category: Incident Management
+  SEF-06:
+    systems: [jira, confluence]
+    category: Incident Management
+  SEF-07:
+    systems: [confluence]
+    category: Incident Management
+  SEF-08:
+    systems: [confluence, jira]
+    category: Incident Management
+
+  # STA — Supply Chain, Transparency & Accountability
+  STA-01:
+    systems: [confluence]
+    category: Supply Chain
+  STA-02:
+    systems: [confluence, jira]
+    category: Supply Chain
+  STA-03:
+    systems: [confluence]
+    category: Supply Chain
+  STA-04:
+    systems: [confluence]
+    category: Supply Chain
+  STA-05:
+    systems: [confluence, jira]
+    category: Supply Chain
+  STA-06:
+    systems: [confluence]
+    category: Supply Chain
+  STA-07:
+    systems: [confluence, jira]
+    category: Supply Chain
+  STA-08:
+    systems: [confluence]
+    category: Supply Chain
+  STA-09:
+    systems: [confluence, github]
+    category: Supply Chain
+  STA-10:
+    systems: [confluence]
+    category: Supply Chain
+
+  # TVM — Threat & Vulnerability Management
+  TVM-01:
+    systems: [crowdstrike, semgrep, confluence]
+    category: Vulnerability Management
+  TVM-02:
+    systems: [crowdstrike, semgrep, jira]
+    category: Vulnerability Management
+  TVM-03:
+    systems: [jira, crowdstrike]
+    category: Vulnerability Management
+  TVM-04:
+    systems: [crowdstrike, lacework, jira]
+    category: Vulnerability Management
+  TVM-05:
+    systems: [jira, confluence]
+    category: Vulnerability Management
+  TVM-06:
+    systems: [semgrep, jira]
+    category: Vulnerability Management
+  TVM-07:
+    systems: [crowdstrike, semgrep]
+    category: Vulnerability Management
+  TVM-08:
+    systems: [jira, confluence]
+    category: Vulnerability Management
+  TVM-09:
+    systems: [crowdstrike, jira, confluence]
+    category: Vulnerability Management
+  TVM-10:
+    systems: [jira]
+    category: Vulnerability Management
+
+  # UEM — Universal Endpoint Management
+  UEM-01:
+    systems: [kandji, confluence]
+    category: Endpoint Management
+  UEM-02:
+    systems: [kandji]
+    category: Endpoint Management
+  UEM-03:
+    systems: [kandji, crowdstrike]
+    category: Endpoint Management
+  UEM-04:
+    systems: [kandji]
+    category: Endpoint Management
+  UEM-05:
+    systems: [kandji, confluence]
+    category: Endpoint Management
+  UEM-06:
+    systems: [kandji]
+    category: Endpoint Management
+  UEM-07:
+    systems: [kandji, crowdstrike]
+    category: Endpoint Management
+  UEM-08:
+    systems: [kandji]
+    category: Endpoint Management
+  UEM-09:
+    systems: [kandji, confluence]
+    category: Endpoint Management

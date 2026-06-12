@@ -36,48 +36,57 @@ class FrameworkMapping:
     controls: dict[str, list[System]]
     categories: dict[str, str]  # control_id -> category
 
-    def lookup(self, control_id: str) -> list[System]:
-        """Look up systems for a control ID with prefix matching.
+    def _build_candidates(self, control_id: str) -> list[str]:
+        """Generate lookup candidates from most specific to least specific.
 
-        Tries exact match first, then progressively shorter prefixes:
+        Handles patterns like:
           CC6.1 -> CC6 -> CC
-          8.25 -> 8
+          500.5a -> 500.5 -> 500
           GV.OC-1 -> GV.OC -> GV
+          8.25.1 -> 8.25 -> 8
         """
         candidates = [control_id]
 
-        # Strip trailing sub-item indicators
+        # Strip trailing alphabetic sub-section (e.g., 500.5a → 500.5)
+        stripped = re.sub(r"[a-z]+$", "", control_id)
+        if stripped != control_id:
+            candidates.append(stripped)
+
+        # Strip trailing numeric sub-item after hyphen (e.g., GV.OC-1 → GV.OC)
         if "-" in control_id:
             candidates.append(control_id.rsplit("-", 1)[0])
-        if "." in control_id:
-            parts = control_id.split(".")
-            # Try major.minor without patch
+
+        # Split on dots for progressively shorter prefixes
+        base = stripped if stripped != control_id else control_id
+        if "." in base:
+            parts = base.split(".")
+            # Try major.minor (e.g., 8.25 from 8.25.1)
             if len(parts) >= 2:
                 candidates.append(f"{parts[0]}.{parts[1]}")
-            # Try major only
+            # Try major only (e.g., 8 from 8.25)
             candidates.append(parts[0])
 
-        for candidate in candidates:
+        # Deduplicate while preserving order
+        seen = set()
+        unique = []
+        for c in candidates:
+            if c not in seen:
+                seen.add(c)
+                unique.append(c)
+        return unique
+
+    def lookup(self, control_id: str) -> list[System]:
+        """Look up systems for a control ID with prefix matching."""
+        for candidate in self._build_candidates(control_id):
             if candidate in self.controls:
                 return self.controls[candidate]
-
         return []
 
     def category(self, control_id: str) -> str | None:
-        """Look up category for a control ID with same prefix matching."""
-        candidates = [control_id]
-        if "-" in control_id:
-            candidates.append(control_id.rsplit("-", 1)[0])
-        if "." in control_id:
-            parts = control_id.split(".")
-            if len(parts) >= 2:
-                candidates.append(f"{parts[0]}.{parts[1]}")
-            candidates.append(parts[0])
-
-        for candidate in candidates:
+        """Look up category for a control ID with prefix matching."""
+        for candidate in self._build_candidates(control_id):
             if candidate in self.categories:
                 return self.categories[candidate]
-
         return None
 
     def matches_id(self, item_id: str) -> bool:

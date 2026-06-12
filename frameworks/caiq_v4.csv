@@ -1,0 +1,167 @@
+id,category,question
+A&A-01,Audit & Assurance,Do you conduct independent audits of your information security program at planned intervals?
+A&A-02,Audit & Assurance,Do you have an independent audit function that reports to senior management or the board?
+A&A-03,Audit & Assurance,Do you monitor and respond to findings from audits and assessments in a timely manner?
+A&A-04,Audit & Assurance,Do you make audit reports available to relevant stakeholders and customers upon request?
+A&A-05,Audit & Assurance,Do you track remediation of audit findings to completion?
+A&A-06,Audit & Assurance,Do you maintain certifications or attestations (SOC 2 ISO 27001 etc.) and keep them current?
+AIS-01,Application Security,Do you have a documented secure software development lifecycle (SSDLC)?
+AIS-02,Application Security,Do you perform automated security testing (SAST DAST) in your CI/CD pipeline?
+AIS-03,Application Security,Do you require security review and approval before releasing code to production?
+AIS-04,Application Security,Do you track and remediate application vulnerabilities within defined SLAs?
+AIS-05,Application Security,Do you implement runtime application protection (WAF RASP) for production applications?
+AIS-06,Application Security,Do you perform code reviews that include security considerations?
+AIS-07,Application Security,Do you maintain separation between development staging and production environments?
+BCR-01,Business Continuity,Do you have a documented business continuity and disaster recovery plan?
+BCR-02,Business Continuity,Do you test your business continuity plan at least annually?
+BCR-03,Business Continuity,Do you maintain redundant infrastructure to ensure availability?
+BCR-04,Business Continuity,Do you perform regular backups and test restoration procedures?
+BCR-05,Business Continuity,Do you define RTOs and RPOs for business-critical services?
+BCR-06,Business Continuity,Do you conduct post-incident reviews after business continuity events?
+BCR-07,Business Continuity,Do you have automated failover capabilities for critical systems?
+BCR-08,Business Continuity,Do you replicate data across geographically diverse locations?
+BCR-09,Business Continuity,Do you monitor system availability and alert on service degradation?
+BCR-10,Business Continuity,Do you include supply chain dependencies in your continuity planning?
+BCR-11,Business Continuity,Do you document and communicate recovery procedures to responsible personnel?
+CCC-01,Change Management,Do you have a documented change management policy?
+CCC-02,Change Management,Do you require all changes to production to go through a formal approval process?
+CCC-03,Change Management,Do you use version control for all infrastructure and application code?
+CCC-04,Change Management,Do you test changes in a non-production environment before deployment?
+CCC-05,Change Management,Do you maintain baseline configurations and detect unauthorized changes?
+CCC-06,Change Management,Do you have rollback procedures for failed changes?
+CCC-07,Change Management,Do you log all changes with who-what-when-why traceability?
+CCC-08,Change Management,Do you enforce segregation of duties between development and deployment?
+CCC-09,Change Management,Do you perform emergency change reviews after the fact when normal procedures are bypassed?
+CEK-01,Encryption,Do you have a documented encryption and key management policy?
+CEK-02,Encryption,Do you encrypt customer data at rest using AES-256 or equivalent?
+CEK-03,Encryption,Do you enforce TLS 1.2+ for all data in transit?
+CEK-04,Encryption,Do you manage encryption keys through a dedicated key management service?
+CEK-05,Encryption,Do you rotate encryption keys according to a defined schedule?
+CEK-06,Encryption,Do you maintain separation of duties for key management operations?
+CEK-07,Encryption,Do you have a process for revoking and replacing compromised keys?
+CEK-08,Encryption,Do you protect key material from unauthorized access using hardware security modules or equivalent?
+DCS-01,Physical Security,Do you restrict physical access to data centers to authorized personnel only?
+DCS-02,Physical Security,Do you monitor data center access with surveillance and entry logs?
+DCS-03,Physical Security,Do you implement multi-layer physical access controls (badge biometric escort)?
+DCS-04,Physical Security,Do you use geographically dispersed data centers for redundancy?
+DCS-05,Physical Security,Do you have environmental controls (fire suppression HVAC water detection)?
+DCS-06,Physical Security,Do you conduct periodic physical security assessments?
+DCS-07,Physical Security,Do you maintain visitor access logs and escort procedures?
+DCS-08,Physical Security,Do you have uninterruptible power supplies and backup generators?
+DSP-01,Data Security,Do you have a data classification policy that categorizes data by sensitivity?
+DSP-02,Data Security,Do you implement technical controls that enforce data handling rules based on classification?
+DSP-03,Data Security,Do you maintain an inventory of data stores containing sensitive or regulated data?
+DSP-04,Data Security,Do you implement data loss prevention controls to detect unauthorized data movement?
+DSP-05,Data Security,Do you securely delete data when it is no longer needed per retention policies?
+DSP-06,Data Security,Do you document data flows showing how customer data is processed stored and transmitted?
+DSP-07,Data Security,Do you restrict database access to authorized applications and administrators?
+DSP-08,Data Security,Do you have a data retention and disposal policy aligned with legal requirements?
+DSP-09,Data Security,Do you provide customers the ability to retrieve or delete their data on request?
+DSP-10,Data Security,Do you implement masking or tokenization for sensitive data in non-production environments?
+DSP-11,Data Security,Do you maintain data processing agreements with all sub-processors?
+DSP-12,Data Security,Do you restrict cross-border data transfers to approved jurisdictions?
+DSP-13,Data Security,Do you conduct privacy impact assessments for new data processing activities?
+DSP-14,Data Security,Do you have breach notification procedures aligned with regulatory timelines?
+DSP-15,Data Security,Do you log all access to sensitive data for audit purposes?
+DSP-16,Data Security,Do you maintain records of processing activities as required by applicable regulations?
+DSP-17,Data Security,Do you implement backup encryption for data at rest in backup storage?
+GRC-01,Governance,Do you have a documented information security policy approved by senior management?
+GRC-02,Governance,Do you assign clear roles and responsibilities for information security?
+GRC-03,Governance,Do you conduct risk assessments at least annually or when significant changes occur?
+GRC-04,Governance,Do you maintain a risk register with treatment plans for identified risks?
+GRC-05,Governance,Do you monitor and report on security metrics to senior management?
+GRC-06,Governance,Do you have a process for staying current with legal and regulatory obligations?
+GRC-07,Governance,Do you document and enforce acceptable use policies?
+GRC-08,Governance,Do you have a process for exception management when security policies cannot be followed?
+HRS-01,Human Resources,Do you perform background screening for employees prior to employment?
+HRS-02,Human Resources,Do you include information security responsibilities in employment contracts?
+HRS-03,Human Resources,Do you provide security awareness training upon hire and annually?
+HRS-04,Human Resources,Do you conduct role-specific security training for personnel in security-sensitive roles?
+HRS-05,Human Resources,Do you have a disciplinary process for security policy violations?
+HRS-06,Human Resources,Do you include confidentiality and non-disclosure agreements in employment terms?
+HRS-07,Human Resources,Do you revoke all access and return assets upon employment termination?
+HRS-08,Human Resources,Do you have a process for modifying access when employees change roles?
+HRS-09,Human Resources,Do you verify that contractors and third-party personnel meet security requirements?
+HRS-10,Human Resources,Do you track security training completion and send reminders for overdue training?
+HRS-11,Human Resources,Do you include security responsibilities in job descriptions?
+HRS-12,Human Resources,Do you perform periodic re-screening for personnel in highly privileged roles?
+HRS-13,Human Resources,Do you have a process for securely managing remote workforce access?
+IAM-01,Identity & Access,Do you have a documented identity and access management policy?
+IAM-02,Identity & Access,Do you enforce unique user identification for all personnel accessing systems?
+IAM-03,Identity & Access,Do you implement multi-factor authentication for all user access to production?
+IAM-04,Identity & Access,Do you enforce strong password policies or passwordless authentication?
+IAM-05,Identity & Access,Do you use a centralized identity provider for single sign-on?
+IAM-06,Identity & Access,Do you implement role-based access control with least privilege?
+IAM-07,Identity & Access,Do you review and recertify user access rights at regular intervals?
+IAM-08,Identity & Access,Do you restrict and monitor privileged/administrative access?
+IAM-09,Identity & Access,Do you automate provisioning and deprovisioning tied to HR events?
+IAM-10,Identity & Access,Do you enforce session management controls (timeout re-auth)?
+IAM-11,Identity & Access,Do you log all authentication events including failures?
+IAM-12,Identity & Access,Do you restrict service account usage and rotate credentials?
+IAM-13,Identity & Access,Do you implement just-in-time or time-bound access for elevated privileges?
+IAM-14,Identity & Access,Do you have a process for emergency access that includes post-use review?
+IAM-15,Identity & Access,Do you segregate duties for critical operations to prevent single-person fraud?
+IAM-16,Identity & Access,Do you federate identity across cloud services rather than maintaining separate credentials?
+IPY-01,Interoperability,Do you use open standards and documented APIs for data portability?
+IPY-02,Interoperability,Do you provide customers with the ability to export their data in standard formats?
+IPY-03,Interoperability,Do you document interoperability capabilities and limitations?
+IPY-04,Interoperability,Do you support customer migration in and out of your platform?
+IVS-01,Infrastructure Security,Do you segment your network to isolate sensitive workloads?
+IVS-02,Infrastructure Security,Do you implement firewalls and network access controls at infrastructure boundaries?
+IVS-03,Infrastructure Security,Do you harden virtual machine and container images before deployment?
+IVS-04,Infrastructure Security,Do you restrict management plane access to authorized networks and personnel?
+IVS-05,Infrastructure Security,Do you maintain an inventory of all infrastructure components?
+IVS-06,Infrastructure Security,Do you monitor network traffic for anomalies and intrusion indicators?
+IVS-07,Infrastructure Security,Do you implement micro-segmentation for multi-tenant environments?
+IVS-08,Infrastructure Security,Do you scan infrastructure for misconfigurations and compliance violations?
+IVS-09,Infrastructure Security,Do you protect against distributed denial of service attacks?
+LOG-01,Logging & Monitoring,Do you generate audit logs for all security-relevant events?
+LOG-02,Logging & Monitoring,Do you centralize log collection from all infrastructure and applications?
+LOG-03,Logging & Monitoring,Do you protect logs from tampering and unauthorized access?
+LOG-04,Logging & Monitoring,Do you retain logs for a minimum period aligned with regulatory and contractual requirements?
+LOG-05,Logging & Monitoring,Do you have a documented logging standard specifying what events to capture?
+LOG-06,Logging & Monitoring,Do you synchronize timestamps across all systems using a reliable time source?
+LOG-07,Logging & Monitoring,Do you monitor logs in near-real-time for security events?
+LOG-08,Logging & Monitoring,Do you have alerting thresholds and escalation procedures for log-based detections?
+LOG-09,Logging & Monitoring,Do you include identity and access events in your logging scope?
+LOG-10,Logging & Monitoring,Do you correlate events across systems to detect complex attack patterns?
+LOG-11,Logging & Monitoring,Do you log administrative and privileged operations separately?
+LOG-12,Logging & Monitoring,Do you review logging coverage periodically to ensure no gaps?
+LOG-13,Logging & Monitoring,Do you maintain audit trail integrity to support forensic investigations?
+SEF-01,Incident Management,Do you have a documented security incident response plan?
+SEF-02,Incident Management,Do you define roles and responsibilities for incident response team members?
+SEF-03,Incident Management,Do you have detection capabilities to identify security incidents promptly?
+SEF-04,Incident Management,Do you classify incidents by severity and escalate appropriately?
+SEF-05,Incident Management,Do you maintain communication procedures for notifying stakeholders during incidents?
+SEF-06,Incident Management,Do you conduct post-incident reviews and document lessons learned?
+SEF-07,Incident Management,Do you have evidence preservation procedures for potential legal proceedings?
+SEF-08,Incident Management,Do you test your incident response plan through exercises at least annually?
+STA-01,Supply Chain,Do you assess the security posture of suppliers before engagement?
+STA-02,Supply Chain,Do you include security requirements in supplier contracts and SLAs?
+STA-03,Supply Chain,Do you maintain an inventory of all suppliers with access to data or systems?
+STA-04,Supply Chain,Do you perform periodic reassessment of supplier risk?
+STA-05,Supply Chain,Do you monitor supplier compliance with contractual security obligations?
+STA-06,Supply Chain,Do you have procedures for responding to security incidents at suppliers?
+STA-07,Supply Chain,Do you require suppliers to notify you of material security changes or breaches?
+STA-08,Supply Chain,Do you assess the supply chain risk of critical software components?
+STA-09,Supply Chain,Do you verify the integrity of software and updates from suppliers?
+STA-10,Supply Chain,Do you have offboarding procedures for suppliers including access revocation and data return?
+TVM-01,Vulnerability Management,Do you have a documented vulnerability management policy and process?
+TVM-02,Vulnerability Management,Do you perform regular vulnerability scanning of all production systems?
+TVM-03,Vulnerability Management,Do you remediate critical vulnerabilities within defined SLAs (e.g. 72 hours)?
+TVM-04,Vulnerability Management,Do you scan for vulnerabilities in container images and cloud configurations?
+TVM-05,Vulnerability Management,Do you perform penetration testing at least annually by qualified assessors?
+TVM-06,Vulnerability Management,Do you integrate vulnerability scanning into your CI/CD pipeline?
+TVM-07,Vulnerability Management,Do you maintain threat intelligence feeds to prioritize vulnerability remediation?
+TVM-08,Vulnerability Management,Do you have a process for accepting risk on vulnerabilities that cannot be immediately remediated?
+TVM-09,Vulnerability Management,Do you track vulnerability metrics (mean time to remediate coverage etc.)?
+TVM-10,Vulnerability Management,Do you verify remediation effectiveness through re-scanning?
+UEM-01,Endpoint Management,Do you enforce device enrollment in a centralized endpoint management solution?
+UEM-02,Endpoint Management,Do you require full disk encryption on all corporate endpoints?
+UEM-03,Endpoint Management,Do you deploy endpoint detection and response (EDR) on all managed devices?
+UEM-04,Endpoint Management,Do you enforce OS and application patching within defined timeframes?
+UEM-05,Endpoint Management,Do you restrict installation of unauthorized software on managed endpoints?
+UEM-06,Endpoint Management,Do you enforce screen lock and automatic session timeout on endpoints?
+UEM-07,Endpoint Management,Do you monitor endpoint compliance and quarantine non-compliant devices?
+UEM-08,Endpoint Management,Do you support secure remote wipe for lost or stolen devices?
+UEM-09,Endpoint Management,Do you maintain an inventory of all managed endpoints with ownership assignment?

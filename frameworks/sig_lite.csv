@@ -1,0 +1,79 @@
+id,category,question
+A.1,Access Control,Do you have a documented access control policy that defines how access to systems and data is granted and revoked?
+A.2,Access Control,Do you enforce the principle of least privilege for all user and service accounts?
+A.3,Access Control,Do you require multi-factor authentication for access to production systems and sensitive data?
+A.4,Access Control,Do you perform periodic access reviews to validate user entitlements remain appropriate?
+A.5,Access Control,Do you have an automated process to revoke access upon employee termination or role change?
+A.6,Access Control,Do you enforce session timeout and re-authentication policies?
+A.7,Access Control,Do you maintain segregation of duties for privileged operations?
+A.8,Access Control,Do you log and monitor all privileged access activity?
+A.9,Access Control,Do you restrict remote access to authorized personnel with MFA and encrypted connections?
+B.1,Application Security,Do you perform static application security testing (SAST) as part of your SDLC?
+B.2,Application Security,Do you track and remediate application security findings within defined SLAs?
+B.3,Application Security,Do you enforce code review and approval before deployment to production?
+B.4,Application Security,Do you perform dependency scanning for known vulnerabilities in third-party libraries?
+B.5,Application Security,Do you maintain separate development/staging/production environments with controlled promotion?
+C.1,Asset Management,Do you maintain a complete inventory of all hardware and software assets?
+C.2,Asset Management,Do you classify assets by sensitivity level and apply protections accordingly?
+C.3,Asset Management,Do you have an asset disposal/decommissioning process that ensures data sanitization?
+C.4,Asset Management,Do you track asset ownership and responsible parties?
+D.1,Business Continuity,Do you have a documented business continuity plan that is reviewed at least annually?
+D.2,Business Continuity,Do you conduct business continuity exercises or tabletop tests?
+D.3,Business Continuity,Do you maintain disaster recovery capabilities including backup and restoration procedures?
+D.4,Business Continuity,Do you define recovery time objectives (RTO) and recovery point objectives (RPO) for critical systems?
+D.5,Business Continuity,Do you have documented procedures for restoring operations after an incident?
+E.1,Compliance,Do you maintain a register of applicable legal and regulatory requirements?
+E.2,Compliance,Do you perform periodic compliance assessments against applicable frameworks?
+E.3,Compliance,Do you track compliance gaps and remediation efforts?
+E.4,Compliance,Do you have a process for monitoring changes to regulatory requirements that affect your organization?
+F.1,Change Management,Do you have a documented change management policy and process?
+F.2,Change Management,Do you require change requests to be reviewed and approved before implementation?
+F.3,Change Management,Do you maintain baseline configurations for production systems and track deviations?
+F.4,Change Management,Do you enforce infrastructure-as-code practices with version control?
+F.5,Change Management,Do you perform rollback testing for critical changes?
+G.1,Data Privacy,Do you have a documented data privacy policy aligned with applicable regulations?
+G.2,Data Privacy,Do you classify and label data based on sensitivity and regulatory requirements?
+G.3,Data Privacy,Do you maintain records of processing activities (ROPA) for personal data?
+G.4,Data Privacy,Do you have processes for responding to data subject access requests?
+G.5,Data Privacy,Do you implement technical controls to prevent unauthorized data access or exfiltration?
+H.1,Endpoint Security,Do you deploy endpoint detection and response (EDR) agents on all corporate endpoints?
+H.2,Endpoint Security,Do you enforce endpoint security baselines (encryption disk patching antimalware)?
+H.3,Endpoint Security,Do you manage endpoint configurations through a centralized MDM or configuration management tool?
+H.4,Endpoint Security,Do you monitor endpoints for indicators of compromise and respond to alerts?
+H.5,Endpoint Security,Do you enforce automatic OS and application patching within defined timeframes?
+I.1,Governance,Do you have a documented information security program with executive-level oversight?
+I.2,Governance,Do you maintain a risk register and perform periodic risk assessments?
+I.3,Governance,Do you assign information security roles and responsibilities across the organization?
+I.4,Governance,Do you track security program metrics and report to leadership?
+J.1,HR Security,Do you perform background checks on employees and contractors prior to granting access?
+J.2,HR Security,Do you provide security awareness training to all employees at hire and annually thereafter?
+J.3,HR Security,Do you have a process for timely access revocation upon employee termination?
+J.4,HR Security,Do you include security responsibilities in employment agreements and contracts?
+K.1,Incident Management,Do you have a documented incident response plan that is tested annually?
+K.2,Incident Management,Do you have a process for detecting triaging and escalating security incidents?
+K.3,Incident Management,Do you conduct post-incident reviews and implement lessons learned?
+K.4,Incident Management,Do you maintain communication plans for notifying affected parties during incidents?
+L.1,Network Security,Do you segment your network to isolate sensitive systems and data?
+L.2,Network Security,Do you deploy web application firewalls and DDoS protection for internet-facing services?
+L.3,Network Security,Do you encrypt data in transit using TLS 1.2 or higher?
+L.4,Network Security,Do you maintain network access control lists restricting traffic to authorized flows?
+L.5,Network Security,Do you monitor network traffic for anomalous or malicious activity?
+M.1,Logging & Monitoring,Do you collect and centralize security logs from all critical systems?
+M.2,Logging & Monitoring,Do you retain security logs for a minimum defined period?
+M.3,Logging & Monitoring,Do you have alerting rules configured for security-relevant events?
+M.4,Logging & Monitoring,Do you perform regular review of security logs and alerts?
+N.1,Encryption,Do you encrypt sensitive data at rest using industry-standard algorithms?
+N.2,Encryption,Do you manage encryption keys with documented lifecycle procedures?
+N.3,Encryption,Do you rotate encryption keys on a defined schedule?
+N.4,Encryption,Do you enforce TLS encryption for all data in transit including internal communications?
+O.1,Physical Security,Do you restrict physical access to data processing facilities to authorized personnel?
+O.2,Physical Security,Do you monitor physical access with surveillance and access logs?
+O.3,Physical Security,Do you have environmental controls protecting against fire water and power failure?
+P.1,Third-Party Risk,Do you assess the security posture of third parties before onboarding?
+P.2,Third-Party Risk,Do you maintain contracts with third parties that include security and privacy requirements?
+P.3,Third-Party Risk,Do you perform periodic reassessment of third-party risk?
+P.4,Third-Party Risk,Do you maintain an inventory of all third parties with access to your data or systems?
+Q.1,Vulnerability Management,Do you perform regular vulnerability scanning of infrastructure and applications?
+Q.2,Vulnerability Management,Do you remediate critical and high vulnerabilities within defined SLAs?
+Q.3,Vulnerability Management,Do you perform periodic penetration testing by qualified assessors?
+Q.4,Vulnerability Management,Do you track vulnerability remediation efforts to closure?
