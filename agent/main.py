@@ -69,6 +69,7 @@ from .questionnaire_parser import parse_questionnaire
 from .report_generator import generate_explainer, generate_master_summary
 from .cache import ResponseCache
 from .checks_integration import is_available as checks_available, run_checks_for_request, get_routing_decision
+from .coverage_report import CoverageReport
 from .retry import RunState, retry_collect
 from .run_logger import RunLogger
 
@@ -217,6 +218,7 @@ def stage_collect(
         run_state.clear()
     response_cache = ResponseCache() if use_cache else None
     collector_cache: dict[System, object] = {}
+    coverage = CoverageReport(run_id=run.run_id, engagement=run.engagement)
 
     if only_systems:
         print(f"      Filtering to systems: {[s.value for s in only_systems]}")
@@ -238,9 +240,9 @@ def stage_collect(
                 checks_result = run_checks_for_request(req)
                 if checks_result and checks_result.files:
                     run.save_evidence(req.id, checks_result)
+                    check_keys = [f.filename.replace("check_", "").replace("_result.json", "") for f in checks_result.files]
+                    coverage.add_check_hit(req, check_keys)
                     print(f"           [checks] {len(checks_result.files)} check(s) provided evidence")
-                    # Checks covered this request — skip individual system collectors
-                    # (Evidence from deterministic checks is sufficient)
                     continue
 
             # Pre-filter: handle skips and cache hits synchronously
@@ -275,6 +277,9 @@ def stage_collect(
                 systems_to_fetch.append((system, collector))
 
             if not systems_to_fetch:
+                # Everything was skipped (manual, no creds, resume, cache)
+                if not any(s for s in active_systems if s != System.MANUAL):
+                    coverage.add_skip(req, "all systems skipped")
                 continue
 
             # Dispatch remaining systems in parallel
@@ -285,6 +290,7 @@ def stage_collect(
                 futures[future] = system
 
             # Gather results as they complete
+            collected_systems = []
             for future in as_completed(futures):
                 system = futures[future]
                 sys_name = system.value
@@ -298,6 +304,7 @@ def stage_collect(
                 elif result is not None:
                     run.save_evidence(req.id, result)
                     logger.log_result(req.id, system, result)
+                    collected_systems.append(sys_name)
                     if result.error:
                         print(f"           [{sys_name}] ERROR: {result.error}")
                     else:
@@ -305,6 +312,14 @@ def stage_collect(
                             response_cache.set(system.value, req.id, call_key="collect", data=pickle.dumps(result))
                         run_state.mark_done(req.id, system)
                         print(f"           [{sys_name}] OK ({len(result.files)} files)")
+
+            # Record coverage gap — CHECKS didn't handle this, collectors did
+            if collected_systems:
+                coverage.add_collector_fallback(
+                    req,
+                    systems_used=collected_systems,
+                    method_description=f"Parallel collectors: {', '.join(collected_systems)}",
+                )
 
     log_path = logger.finalize()
     run.stage = Stage.COLLECTED
@@ -317,6 +332,13 @@ def stage_collect(
     print(f"\n      Evidence files: {total} | Errors: {errors}")
     print(f"      Workspace: {run.workspace}")
     print(f"      Run log: {log_path}")
+
+    # Coverage report — shows what CHECKS handled vs what fell through
+    coverage.print_summary()
+    coverage.save_json(run.workspace / "coverage_report.json")
+    coverage.save_markdown(run.workspace / "coverage_report.md")
+    print(f"      Coverage report: {run.workspace / 'coverage_report.md'}")
+
     return run
 
 
