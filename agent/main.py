@@ -68,6 +68,7 @@ from .pipeline import CollectionRun, Stage
 from .questionnaire_parser import parse_questionnaire
 from .report_generator import generate_explainer, generate_master_summary
 from .cache import ResponseCache
+from .checks_integration import is_available as checks_available, run_checks_for_request, get_routing_decision
 from .retry import RunState, retry_collect
 from .run_logger import RunLogger
 
@@ -231,6 +232,16 @@ def stage_collect(
                 if not only_systems or s in only_systems
             ]
             print(f"           Systems: {[s.value for s in active_systems]}")
+
+            # Try CHECKS library first (Tier 1 — deterministic, cheap)
+            if checks_available():
+                checks_result = run_checks_for_request(req)
+                if checks_result and checks_result.files:
+                    run.save_evidence(req.id, checks_result)
+                    print(f"           [checks] {len(checks_result.files)} check(s) provided evidence")
+                    # Checks covered this request — skip individual system collectors
+                    # (Evidence from deterministic checks is sufficient)
+                    continue
 
             # Pre-filter: handle skips and cache hits synchronously
             systems_to_fetch: list[tuple[System, object]] = []  # (system, collector)
