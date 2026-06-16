@@ -11,7 +11,29 @@ Automatically collects evidence for security audits and compliance questionnaire
 - NYDFS 23 NYCRR 500
 - CSA CAIQ v4
 - SIG Lite (Shared Assessments)
-- Custom questionnaires (CSV or Excel)
+- Custom questionnaires (CSV, Excel, or plain text)
+
+---
+
+## Part of the PANOPTICON Suite
+
+EXHIBIT is one piece of a three-part system for GRC engineers:
+
+| Tool | What it does | Repo |
+|------|-------------|------|
+| **[CHECKS](https://github.com/DuuMayne/CHECKS)** | Shared check library — deterministic pass/fail logic + connectors | The primitive |
+| **[OCULUS](https://github.com/DuuMayne/OCULUS)** | Runs checks continuously, stores results, alerts on drift | The monitor |
+| **EXHIBIT** (this) | Packages evidence for auditors — maps frameworks, generates explainers | The audit response |
+
+**How they connect:** When an auditor asks a question, EXHIBIT uses a decision engine to find the cheapest answer:
+
+1. **Check** (free) — If CHECKS has a deterministic check for this control, use the result. No API call needed.
+2. **Retrieval** (cheap) — If the answer is a known artifact with known parameters, fetch it directly.
+3. **Agent** (expensive) — Only fire up LLM reasoning for genuinely ambiguous questions.
+
+After every run, EXHIBIT generates a **coverage report** showing which questions were answered by checks vs. which fell back to collectors. Each gap is a suggested new evaluator you can add to the CHECKS library — shrinking future costs with every iteration.
+
+Each tool works independently. You don't need all three. But together they form a feedback loop that gets cheaper over time.
 
 ---
 
@@ -579,7 +601,18 @@ controls:
 - `category` is optional but recommended — it controls folder organization in the Drive output
 - No Python changes required; the registry picks up new YAML files automatically
 
-### Running tests
+### Dev workflow
+
+```bash
+make install    # install deps + pre-commit hooks (one-time)
+make check      # run lint + security + tests (before committing)
+make test       # run 27 tests (parser, framework loader, pipeline)
+make format     # auto-fix style issues
+```
+
+Pre-commit hooks run automatically — `ruff` (lint/format), `bandit` (security), and `pytest` gate every commit. All tests run without credentials.
+
+### Running a manual smoke test
 
 ```bash
 source .venv/bin/activate
