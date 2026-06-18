@@ -2,10 +2,8 @@
 AWS evidence collector using boto3.
 Covers: IAM, CloudTrail, S3, ACM, Config, GuardDuty, CloudWatch.
 """
-import io
 import json
 import os
-from datetime import datetime, timezone
 
 import boto3
 

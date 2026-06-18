@@ -106,8 +106,7 @@ SYSTEM_KEYWORDS = {
         "container vulnerability", "host vulnerability", "cloud alert",
     ],
     System.BROWSER: [
-        "mmax", "school success disbursement", "cashi", "certification approval",
-        "school hub", "spoke", "nest",
+        "internal app", "in-house app", "custom app",
         "1password", "argocd", "gitops", "new relic", "uptime", "apm",
         "zendesk", "ticketing system", "bug bounty", "hackerone",
         "pritunl", "vpn access log", "retool",
@@ -116,6 +115,35 @@ SYSTEM_KEYWORDS = {
     ],
 }
 
+CLASSIFICATION_PROMPT = """You are a compliance evidence analyst. Given a list of audit questions or evidence requests, classify each one.
+
+System reference:
+- "aws": IAM, CloudTrail, S3, RDS, ACM, CloudWatch, Config — any AWS infrastructure or database access
+- "env0": infrastructure-as-code deployments, Terraform/OpenTofu runs, environment inventory (prod/staging separation), IaC team permissions, deployment approvals, configuration drift — use for ANY infrastructure change or deploy-to-production question
+- "github": application code changes (PRs, commits), branch protections, SAST/secret scanning, repo membership, staging branches — use alongside env0 for change management questions
+- "okta": access reviews, user accounts, MFA, privileged access, provisioning/deprovisioning, inactivity policy
+- "jira": tickets, populations/samples of changes, incidents, access modification logs, restoration evidence
+- "confluence": policies, procedures, runbooks — anything asking for written documentation
+- "google_workspace": Gmail, Drive, admin console, 2SV, audit logs
+- "crowdstrike": EDR/antimalware coverage, prevention policies, endpoint detections, vulnerability spotlight, host groups; also serves as the SIEM — use for centralized logging, security monitoring, threat detection, and XDR questions
+- "cloudflare": CDN/edge, WAF rules, TLS/SSL config, DDoS protection, Cloudflare Access/Zero Trust, web filtering
+- "snowflake": data warehouse user accounts, role grants, login history, query audit, password and network policies
+- "kandji": MDM device inventory, FileVault/encryption compliance, blueprints, patch management, automated enrollment
+- "semgrep": SAST findings by severity/repo, projects scanned, scan policies, pipeline coverage
+- "lacework": cloud security posture (CSPM), compliance assessments, cloud alerts/violations, host and container vulnerability findings; use for cloud misconfiguration or cloud benchmark questions
+- "browser": internal applications without usable APIs, 1Password, ArgoCD, New Relic, Zendesk, HackerOne, Pritunl VPN, Retool, or any other app requiring interactive browser access
+- "manual": items requiring human narrative response or physical evidence with no automatable source
+
+For each item return a JSON object with:
+- "id": the item ID/number from the input
+- "category": the compliance category (e.g. "Access Control", "Change Management", "Logging & Monitoring", "Business Continuity", "IT Operations", "Network Security", "Vulnerability Management")
+- "systems": array of systems to query from the list above — include ALL relevant systems for the question
+- "hints": array of 3-5 specific artifacts to collect (e.g. "GitHub PR list filtered to 01/01/2026-present with author, approver, merge date", "Okta users report showing last login and MFA status", "Jira tickets labeled restoration-test from Q1 2026")
+
+Return a JSON array, one object per item. Be precise in hints — they are instructions to automated collectors.
+
+Questions to classify:
+{questions}"""
 
 def load_questionnaire(path: str | Path) -> pd.DataFrame:
     """Load a questionnaire from CSV, Excel, or plain text.

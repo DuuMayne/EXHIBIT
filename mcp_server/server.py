@@ -125,7 +125,7 @@ def dry_run_collection(questionnaire_path: str, engagement_name: str) -> str:
     Args:
         questionnaire_path: Path to CSV/Excel, or use upload_questionnaire first.
                            Framework templates live at /app/frameworks/*.csv
-        engagement_name: Human-readable label, e.g. "Baker Tilly Q2 2026"
+        engagement_name: Human-readable label, e.g. "Auditor Firm LLP Q2 2026"
     """
     with _capture_stdout() as buf:
         try:
@@ -150,8 +150,8 @@ def collect_evidence(
     Args:
         questionnaire_path: Path to CSV/Excel questionnaire, or output of upload_questionnaire.
                            Built-in templates: /app/frameworks/soc2_type2.csv,
-                           /app/frameworks/earnest_audit_2026.csv, etc.
-        engagement_name: Label for the Drive folder, e.g. "Baker Tilly Q2 2026 SOC 2"
+                           /app/frameworks/example_soc2_audit.csv, etc.
+        engagement_name: Label for the Drive folder, e.g. "Auditor Firm LLP Q2 2026 SOC 2"
         only_systems: Comma-separated list to restrict collection, e.g. "aws,github,okta".
                      Leave blank to collect from all configured systems.
         use_claude: Whether to use Claude for question classification (default True).

@@ -35,7 +35,7 @@ class JiraCollector:
         return r.json()
 
     def collect(self, request: EvidenceRequest) -> EvidenceResult:
-        system = System.JIRA if request.system == System.JIRA else System.CONFLUENCE
+        system = System.JIRA if System.JIRA in request.systems else System.CONFLUENCE
         result = EvidenceResult(request_id=request.id, system=system)
         hints_lower = " ".join(request.hints + [request.question]).lower()
 

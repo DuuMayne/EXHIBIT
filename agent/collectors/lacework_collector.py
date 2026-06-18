@@ -5,7 +5,7 @@ Lacework evidence collector via Lacework REST API v2.
 Auth: API key + secret → exchange for short-lived access token.
 
 Env vars:
-  LACEWORK_ACCOUNT    - Tenant name (e.g. "earnest" → earnest.lacework.net)
+  LACEWORK_ACCOUNT    - Tenant name (e.g. "acme" → acme.lacework.net)
   LACEWORK_API_KEY    - Key ID from API credentials JSON
   LACEWORK_API_SECRET - Key secret from API credentials JSON
 
@@ -106,7 +106,7 @@ class LaceworkCollector:
         return result
 
     def _collect_compliance(self, result: EvidenceResult):
-        # Latest compliance evaluation reports (AWS is primary for Earnest)
+        # Latest compliance evaluation reports (AWS is the primary cloud provider)
         try:
             data = self._get("/Configs/ComplianceEvaluations", {"primaryQueryId": "AWS_CIS_S3"})
             evals = data.get("data", [])

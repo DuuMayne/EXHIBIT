@@ -123,12 +123,12 @@ The variables to set:
 | `GOOGLE_CREDENTIALS_PATH` | Path to your Google service account JSON (see note below) |
 | `GOOGLE_DRIVE_OWNER_EMAIL` | Your email — Drive folders will be shared with you |
 | `GITHUB_TOKEN` | GitHub API access |
-| `GITHUB_ORG` | Your GitHub organization name (e.g. `earnest`) |
+| `GITHUB_ORG` | Your GitHub organization name (e.g. `acme-corp`) |
 | `AWS_REGION` | Usually `us-east-1` |
 | `AWS_PROFILE` | Name of your AWS CLI profile (usually `default`) |
-| `OKTA_DOMAIN` | Your Okta tenant (e.g. `earnest.okta.com`) |
+| `OKTA_DOMAIN` | Your Okta tenant (e.g. `acme-corp.okta.com`) |
 | `OKTA_API_TOKEN` | Okta API token |
-| `ATLASSIAN_DOMAIN` | Your Atlassian domain (e.g. `earnest.atlassian.net`) |
+| `ATLASSIAN_DOMAIN` | Your Atlassian domain (e.g. `acme-corp.atlassian.net`) |
 | `ATLASSIAN_EMAIL` | Your Atlassian account email |
 | `ATLASSIAN_API_TOKEN` | Atlassian API token |
 | `CROWDSTRIKE_CLIENT_ID` | CrowdStrike API client ID |
@@ -139,10 +139,10 @@ The variables to set:
 | `SNOWFLAKE_USER` | Snowflake username |
 | `SNOWFLAKE_PASSWORD` | Snowflake password |
 | `KANDJI_API_TOKEN` | Kandji API token |
-| `KANDJI_SUBDOMAIN` | Your Kandji subdomain (e.g. `earnest`) |
+| `KANDJI_SUBDOMAIN` | Your Kandji subdomain (e.g. `acme-corp`) |
 | `SEMGREP_API_TOKEN` | Semgrep API token |
 | `SEMGREP_ORG_SLUG` | Your Semgrep org slug |
-| `LACEWORK_ACCOUNT` | Lacework account name (e.g. `earnest`) |
+| `LACEWORK_ACCOUNT` | Lacework account name (e.g. `acme-corp`) |
 | `LACEWORK_API_KEY` | Lacework API key ID |
 | `LACEWORK_API_SECRET` | Lacework API secret |
 | `ENV0_API_KEY` | env0 API key |
@@ -273,7 +273,7 @@ Set `GITHUB_ORG` to your organization name — the part after `github.com/` in y
 3. Click **Create Token** → name it "Compliance Agent"
 4. Copy the token — you won't see it again
 
-Set `OKTA_DOMAIN` to your Okta domain (e.g. `earnest.okta.com` — without `https://`).
+Set `OKTA_DOMAIN` to your Okta domain (e.g. `acme-corp.okta.com` — without `https://`).
 
 ### Atlassian (Jira + Confluence)
 
@@ -281,7 +281,7 @@ Set `OKTA_DOMAIN` to your Okta domain (e.g. `earnest.okta.com` — without `http
 2. Click **Create API token** → name it "Compliance Agent"
 3. Copy the token
 
-Set `ATLASSIAN_DOMAIN` to your Atlassian domain (e.g. `earnest.atlassian.net`), `ATLASSIAN_EMAIL` to your Atlassian login email.
+Set `ATLASSIAN_DOMAIN` to your Atlassian domain (e.g. `acme-corp.atlassian.net`), `ATLASSIAN_EMAIL` to your Atlassian login email.
 
 ### CrowdStrike
 
@@ -355,12 +355,12 @@ The `ENV0_ORG_ID` is auto-detected from the API key if left blank.
 
 With the container running and Claude Code open, just describe what you want:
 
-> "Run a dry run of the Baker Tilly audit questionnaire as 'Baker Tilly Q2 2026'"
+> "Run a dry run of the SOC 2 audit questionnaire as 'External Auditor Q2 2026'"
 
 Claude will call `dry_run_collection` and show you which systems each question routes to — no API calls yet, just the plan.
 
 When you're ready to collect:
-> "Collect evidence for the Baker Tilly audit, engagement name 'Baker Tilly Q2 2026'"
+> "Collect evidence for the SOC 2 audit, engagement name 'External Auditor Q2 2026'"
 
 Claude calls `collect_evidence`, which runs the full pipeline and returns a Google Drive link when done.
 
@@ -379,12 +379,12 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
 **Preview the collection plan (no API calls):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --dry-run
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026" --dry-run
 ```
 
 **Run the full pipeline (collect + upload to Drive):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026"
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026"
 ```
 
 **Collect evidence locally without uploading (review first, upload later):**
@@ -402,22 +402,22 @@ python -m agent.main runs
 
 **Collect from specific systems only (faster, useful for partial runs):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --only aws,github,okta
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026" --only aws,github,okta
 ```
 
 **Resume a failed collection (skip already-completed items):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --resume
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026" --resume
 ```
 
 **Skip the AI classification step (faster, works without an API key):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --no-claude
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026" --no-claude
 ```
 
 **Force fresh API calls (bypass cache):**
 ```bash
-python -m agent.main frameworks/earnest_audit_2026.csv "Baker Tilly Q2 2026" --no-cache
+python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026" --no-cache
 ```
 
 **Check which credentials are configured:**
@@ -437,7 +437,7 @@ These are ready to use — just swap out the CSV path. Each framework template h
 | `frameworks/nydfs_500.csv` | NYDFS 23 NYCRR 500 | 24 sections → 9 systems |
 | `frameworks/caiq_v4.csv` | CSA CAIQ v4 | 166 controls → 14 systems |
 | `frameworks/sig_lite.csv` | SIG Lite (Shared Assessments) | 78 questions → 14 systems |
-| `frameworks/earnest_audit_2026.csv` | Custom (Baker Tilly) | LLM/keyword routing |
+| `frameworks/example_soc2_audit.csv` | Custom audit request list | LLM/keyword routing |
 
 Framework detection is automatic — EXHIBIT identifies which framework a questionnaire belongs to from its item IDs and routes accordingly. All framework mappings are validated against the system registry at startup — a typo in a YAML file will fail loud rather than silently misrouting.
 
@@ -445,10 +445,10 @@ Framework detection is automatic — EXHIBIT identifies which framework a questi
 
 ## 6. Understanding the output
 
-The agent creates a Google Drive folder named after your engagement (e.g. "Baker Tilly Q2 2026") and shares it with the email address you set in `GOOGLE_DRIVE_OWNER_EMAIL`.
+The agent creates a Google Drive folder named after your engagement (e.g. "External Auditor Q2 2026") and shares it with the email address you set in `GOOGLE_DRIVE_OWNER_EMAIL`.
 
 ```
-Baker Tilly Q2 2026/
+External Auditor Q2 2026/
 ├── 00_Index/
 │   ├── master_summary.md       ← start here — overview of all evidence collected
 │   └── evidence_index.json     ← machine-readable index
@@ -547,10 +547,10 @@ The Google service account JSON path is wrong, or the file isn't accessible insi
 
 This means it couldn't route those questions to any configured system — either the credentials for those systems aren't set, or the questions don't match any known keywords. Run `--dry-run` to see the routing plan and check which systems are needed for each item.
 
-### Some items reference in-house apps (MMAX, CASHI, School Hub)
+### Some items reference internal applications
 
-These internal Earnest applications don't have public APIs. For evidence:
-- Connect to Pritunl VPN first
+These internal applications don't have public APIs. For evidence:
+- Connect to your corporate VPN first
 - Then run the collection with `--only aws` to pull CloudTrail and IAM records for those systems from AWS
 - Alternatively, use browser automation: the agent will open Chrome with your existing session and screenshot the relevant pages
 
