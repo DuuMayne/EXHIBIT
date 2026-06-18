@@ -25,15 +25,9 @@ EXHIBIT is one piece of a three-part system for GRC engineers:
 | **[OCULUS](https://github.com/DuuMayne/OCULUS)** | Runs checks continuously, stores results, alerts on drift | The monitor |
 | **EXHIBIT** (this) | Packages evidence for auditors — maps frameworks, generates explainers | The audit response |
 
-**How they connect:** When an auditor asks a question, EXHIBIT uses a decision engine to find the cheapest answer:
+**How they connect:** When an auditor asks a question, EXHIBIT classifies it by system and collects evidence from those systems via API connectors, then outputs organized evidence packages. Routing uses either framework-specific YAML mappings (for known frameworks like SOC 2 or ISO 27001) or LLM/keyword classification (for custom questionnaires).
 
-1. **Check** (free) — If CHECKS has a deterministic check for this control, use the result. No API call needed.
-2. **Retrieval** (cheap) — If the answer is a known artifact with known parameters, fetch it directly.
-3. **Agent** (expensive) — Only fire up LLM reasoning for genuinely ambiguous questions.
-
-After every run, EXHIBIT generates a **coverage report** showing which questions were answered by checks vs. which fell back to collectors. Each gap is a suggested new evaluator you can add to the CHECKS library — shrinking future costs with every iteration.
-
-Each tool works independently. You don't need all three. But together they form a feedback loop that gets cheaper over time.
+Each tool works independently. You don't need all three. But together they form a feedback loop: OCULUS monitors continuously, EXHIBIT packages evidence on demand, and CHECKS provides standalone check primitives.
 
 ---
 
