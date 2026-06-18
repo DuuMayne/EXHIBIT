@@ -34,7 +34,7 @@ Flags:
 
 Examples:
     # Use a pre-built framework template
-    python -m agent.main frameworks/soc2_type2.csv "Baker Tilly Q2 2026"
+    python -m agent.main frameworks/soc2_type2.csv "External Auditor Q2 2026"
 
     # Use a plain text file with one question per line
     python -m agent.main my_questions.txt "Vendor Assessment 2026"

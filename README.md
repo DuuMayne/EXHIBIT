@@ -389,7 +389,7 @@ python -m agent.main frameworks/example_soc2_audit.csv "External Auditor Q2 2026
 
 **Collect evidence locally without uploading (review first, upload later):**
 ```bash
-python -m agent.main collect frameworks/soc2_type2.csv "Baker Tilly Q2 2026"
+python -m agent.main collect frameworks/soc2_type2.csv "External Auditor Q2 2026"
 # Evidence saved to ~/.exhibit/workspaces/<run_id>/
 # Inspect the files, then upload when ready:
 python -m agent.main upload 20260612_143022

@@ -101,7 +101,7 @@ System reference:
 - "kandji": MDM device inventory, FileVault/encryption compliance, blueprints, patch management, automated enrollment
 - "semgrep": SAST findings by severity/repo, projects scanned, scan policies, pipeline coverage
 - "lacework": cloud security posture (CSPM), compliance assessments, cloud alerts/violations, host and container vulnerability findings; use for cloud misconfiguration or cloud benchmark questions
-- "browser": MMAX (school success disbursement), CASHI (school hub interface), School Hub/Spoke, 1Password, ArgoCD, New Relic, Zendesk, HackerOne, Pritunl VPN, Retool, or any other internal app without a usable API
+- "browser": internal applications without usable APIs, 1Password, ArgoCD, New Relic, Zendesk, HackerOne, Pritunl VPN, Retool, or any other app requiring interactive browser access
 - "manual": items requiring human narrative response or physical evidence with no automatable source
 
 For each item return a JSON object with:
