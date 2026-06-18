@@ -62,7 +62,7 @@ CLI flags:
 
 Arguments:
 - `questionnaire_path`: path to CSV or Excel file; or paste raw text and I'll save it to `/tmp/questionnaire.csv`
-- `engagement_name`: descriptive name e.g. `"Acme Audit Q2 2026"`
+- `engagement_name`: descriptive name e.g. `"Auditor Firm LLP Q2 2026"`
 
 ## Input CSV format
 Required columns: `id`, `question`. Optional: `category`.
@@ -93,10 +93,10 @@ with open('/tmp/questionnaire.csv', 'w') as f:
     ...
 ```
 
-## In-house apps (App-A, App-B, App-C, App-E)
-These company-internal apps route to `browser` and require Playwright with the saved
-Chrome profile over corporate VPN. Alternatively, collect IAM/CloudTrail evidence from
-AWS directly using `--only aws` since they run in the company's AWS environment.
+## In-house apps
+Internal applications without public APIs route to `browser` and require Playwright with
+the saved Chrome profile over corporate VPN. Alternatively, collect IAM/CloudTrail
+evidence from AWS directly using `--only aws` since they run in the organization's AWS environment.
 
 ## Credential reference
 All credential var names are in `docker-compose.yml` (environment block) and `.env.example`.
