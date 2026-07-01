@@ -682,11 +682,11 @@ EXHIBIT uses a dual license:
 
 | What | License |
 |---|---|
-| Source code (`agent/`, `mcp_server/`, `Dockerfile`, etc.) | [Apache 2.0](LICENSE) |
-| Documentation & templates (`README.md`, `frameworks/*.csv`, skills) | [CC BY 4.0](LICENSE-docs) |
+| Source code (`agent/`, `mcp_server/`, `Dockerfile`, etc.) | [Elastic License 2.0](LICENSE) |
+| Documentation & templates (`README.md`, `frameworks/*.csv`, skills) | [CC BY-NC 4.0](LICENSE-docs) |
 
-**Apache 2.0** means you can use, modify, and redistribute the code freely — including commercially — as long as you include the license and attribution.
+**Elastic License 2.0** means you can use, modify, fork, and share the code freely. The one restriction: you cannot offer EXHIBIT itself as a paid hosted or managed service. Running it internally at your organization is explicitly allowed.
 
-**CC BY 4.0** means you can share and adapt the docs and templates for any purpose, as long as you credit the original.
+**CC BY-NC 4.0** means you can share and adapt the docs and templates for any non-commercial purpose, as long as you credit the original.
 
 Copyright 2026 Adam Duman
