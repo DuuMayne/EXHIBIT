@@ -14,9 +14,22 @@ services:
     environment:
       MCP_PORT: "8765"
       PYTHONUNBUFFERED: "1"
-      # ── Anthropic ──────────────────────────────────────────────────────────────
+      # ── LLM backend ────────────────────────────────────────────────────────────
+      # Controls which AI backend is used for question classification + explainers.
+      # "claude"    → direct Anthropic API (set ANTHROPIC_API_KEY below)
+      # "bedrock"   → Claude via AWS Bedrock (uses your AWS credentials, no Anthropic key)
+      # "heuristic" → keyword matching only, no AI calls
+      # Leave blank to auto-detect: Anthropic key → Bedrock → heuristic
+      EXHIBIT_LLM_BACKEND: ""
+      # Bedrock model ID — only needed if EXHIBIT_LLM_BACKEND=bedrock
+      # Default: us.anthropic.claude-sonnet-4-5-20251001-v1:0
+      # Other options: us.anthropic.claude-opus-4-20250514-v1:0
+      #                anthropic.claude-3-5-sonnet-20241022-v2:0  (single-region)
+      EXHIBIT_CLAUDE_MODEL: ""
+      # ── Anthropic (direct API — alternative to Bedrock) ────────────────────────
       ANTHROPIC_API_KEY: ""
       # ── AWS ────────────────────────────────────────────────────────────────────
+      # Used for both the AWS collector and Bedrock LLM access.
       # Prefer IAM role (ECS/EC2) or aws-vault. Set AWS_PROFILE if using named profile.
       AWS_REGION: "us-east-1"
       AWS_PROFILE: ""

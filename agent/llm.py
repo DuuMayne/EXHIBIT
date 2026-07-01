@@ -6,9 +6,16 @@ pluggable implementations. The active implementation is selected at
 runtime based on configuration (EXHIBIT_LLM_BACKEND env var).
 
 Backends:
-  - "claude" (default): Uses Anthropic Claude API
+  - "claude" (default): Direct Anthropic API — needs ANTHROPIC_API_KEY
+  - "bedrock": Claude via AWS Bedrock — uses your AWS credentials, no Anthropic key needed
   - "heuristic": Keyword matching + framework maps only, no API calls
-  - Future: "ollama", "openai", etc.
+
+Bedrock setup:
+  Set EXHIBIT_LLM_BACKEND=bedrock in docker-compose.yml (or .env).
+  AWS credentials come from the same AWS_PROFILE / IAM role you already
+  configured for the AWS collector — no extra setup needed.
+  Override the model with EXHIBIT_CLAUDE_MODEL (Bedrock model ID format):
+    e.g. us.anthropic.claude-sonnet-4-5-20251001-v1:0
 
 Usage:
     from agent.llm import get_classifier, get_explainer_generator
@@ -170,7 +177,7 @@ class ClaudeClassifier(Classifier):
 
 
 class ClaudeExplainerGenerator(ExplainerGenerator):
-    """Explainer generation via Anthropic Claude API."""
+    """Explainer generation via direct Anthropic API."""
 
     def __init__(self, model: str | None = None):
         import anthropic
@@ -255,6 +262,97 @@ class ClaudeExplainerGenerator(ExplainerGenerator):
 
 
 # ---------------------------------------------------------------------------
+# Bedrock implementation (Claude via AWS Bedrock)
+# ---------------------------------------------------------------------------
+
+# Default Bedrock model — cross-region inference profile for us-* regions.
+# Override with EXHIBIT_CLAUDE_MODEL using any valid Bedrock model ID, e.g.:
+#   us.anthropic.claude-sonnet-4-5-20251001-v1:0
+#   us.anthropic.claude-opus-4-20250514-v1:0
+#   anthropic.claude-3-5-sonnet-20241022-v2:0  (single-region, no prefix)
+_BEDROCK_DEFAULT_MODEL = "us.anthropic.claude-sonnet-4-5-20251001-v1:0"
+
+
+def _make_bedrock_client():
+    """Return an AnthropicBedrock client using the existing AWS credential chain."""
+    import anthropic
+    region = os.environ.get("AWS_REGION", "us-east-1")
+    return anthropic.AnthropicBedrock(aws_region=region)
+
+
+class BedrockClassifier(Classifier):
+    """Classification via Claude on AWS Bedrock. Uses AWS credentials — no Anthropic key needed."""
+
+    def __init__(self, model: str | None = None):
+        self._client = _make_bedrock_client()
+        self._model = model or os.environ.get("EXHIBIT_CLAUDE_MODEL", _BEDROCK_DEFAULT_MODEL)
+
+    @property
+    def name(self) -> str:
+        return f"bedrock ({self._model})"
+
+    def classify(self, rows: list[dict]) -> list[dict]:
+        questions_text = "\n".join(f"{r['id']}. {r['question']}" for r in rows)
+
+        message = self._client.messages.create(
+            model=self._model,
+            max_tokens=8192,
+            messages=[{
+                "role": "user",
+                "content": CLASSIFICATION_PROMPT.format(questions=questions_text),
+            }],
+        )
+
+        raw = message.content[0].text
+        json_match = re.search(r"\[.*\]", raw, re.DOTALL)
+        if not json_match:
+            raise ValueError(f"Could not parse classification response:\n{raw[:500]}")
+        return json.loads(json_match.group())
+
+
+class BedrockExplainerGenerator(ExplainerGenerator):
+    """Explainer generation via Claude on AWS Bedrock."""
+
+    def __init__(self, model: str | None = None):
+        self._client = _make_bedrock_client()
+        self._model = model or os.environ.get("EXHIBIT_CLAUDE_MODEL", _BEDROCK_DEFAULT_MODEL)
+
+    @property
+    def name(self) -> str:
+        return f"bedrock ({self._model})"
+
+    def generate(self, request: EvidenceRequest, results: list[EvidenceResult]) -> str:
+        files_list = "\n".join(
+            f"  - [{r.system.value}] {ef.filename}: {ef.description}"
+            for r in results for ef in r.files
+        ) or "  (no files collected)"
+
+        summaries = "\n".join(
+            f"[{r.system.value}] {r.text_summary}" for r in results if r.text_summary
+        ) or "(no summaries available)"
+
+        message = self._client.messages.create(
+            model=self._model,
+            max_tokens=1024,
+            messages=[{
+                "role": "user",
+                "content": EXPLAINER_PROMPT.format(
+                    id=request.id,
+                    question=request.question,
+                    category=request.category,
+                    systems=", ".join(s.value for s in request.systems),
+                    files_list=files_list,
+                    summaries=summaries,
+                ),
+            }],
+        )
+        explanation = message.content[0].text
+        # Reuse the Claude formatter — output format is identical
+        dummy = ClaudeExplainerGenerator.__new__(ClaudeExplainerGenerator)
+        return dummy._format_explainer(request, results, explanation)
+
+
+# ---------------------------------------------------------------------------
 # Heuristic implementation (no API calls)
 # ---------------------------------------------------------------------------
 
@@ -329,41 +427,54 @@ class HeuristicExplainerGenerator(ExplainerGenerator):
 # Factory functions
 # ---------------------------------------------------------------------------
 
+def _detect_backend() -> str:
+    """Auto-detect which backend to use based on configured env vars."""
+    explicit = os.environ.get("EXHIBIT_LLM_BACKEND", "").lower()
+    if explicit:
+        return explicit
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return "claude"
+    # Fall back to Bedrock if AWS creds are available but no Anthropic key
+    if os.environ.get("AWS_PROFILE") or os.environ.get("AWS_ACCESS_KEY_ID"):
+        return "bedrock"
+    return "heuristic"
+
+
 def get_classifier(backend: str | None = None) -> Classifier:
     """Get the configured classifier backend.
 
     Args:
-        backend: Override backend selection. If None, uses EXHIBIT_LLM_BACKEND env var
-                 (default: "claude" if ANTHROPIC_API_KEY is set, else "heuristic").
+        backend: Override backend selection. If None, auto-detects from env vars:
+                 EXHIBIT_LLM_BACKEND → ANTHROPIC_API_KEY → AWS creds → heuristic.
     """
     if backend is None:
-        backend = os.environ.get("EXHIBIT_LLM_BACKEND", "").lower()
-        if not backend:
-            backend = "claude" if os.environ.get("ANTHROPIC_API_KEY") else "heuristic"
+        backend = _detect_backend()
 
     if backend == "claude":
         return ClaudeClassifier()
+    elif backend == "bedrock":
+        return BedrockClassifier()
     elif backend == "heuristic":
         return HeuristicClassifier()
     else:
-        raise ValueError(f"Unknown LLM backend: '{backend}'. Valid: claude, heuristic")
+        raise ValueError(f"Unknown LLM backend: '{backend}'. Valid: claude, bedrock, heuristic")
 
 
 def get_explainer_generator(backend: str | None = None) -> ExplainerGenerator:
     """Get the configured explainer generator backend.
 
     Args:
-        backend: Override backend selection. If None, uses EXHIBIT_LLM_BACKEND env var
-                 (default: "claude" if ANTHROPIC_API_KEY is set, else "heuristic").
+        backend: Override backend selection. If None, auto-detects from env vars:
+                 EXHIBIT_LLM_BACKEND → ANTHROPIC_API_KEY → AWS creds → heuristic.
     """
     if backend is None:
-        backend = os.environ.get("EXHIBIT_LLM_BACKEND", "").lower()
-        if not backend:
-            backend = "claude" if os.environ.get("ANTHROPIC_API_KEY") else "heuristic"
+        backend = _detect_backend()
 
     if backend == "claude":
         return ClaudeExplainerGenerator()
+    elif backend == "bedrock":
+        return BedrockExplainerGenerator()
     elif backend == "heuristic":
         return HeuristicExplainerGenerator()
     else:
-        raise ValueError(f"Unknown LLM backend: '{backend}'. Valid: claude, heuristic")
+        raise ValueError(f"Unknown LLM backend: '{backend}'. Valid: claude, bedrock, heuristic")
