@@ -26,6 +26,12 @@ services:
       # Other options: us.anthropic.claude-opus-4-20250514-v1:0
       #                anthropic.claude-3-5-sonnet-20241022-v2:0  (single-region)
       EXHIBIT_CLAUDE_MODEL: ""
+      # ── Bedrock dedicated credentials (recommended) ────────────────────────────
+      # Create an IAM user with ONLY bedrock:InvokeModel permission and put those
+      # keys here. Keeps LLM access separate from your AWS collector credentials.
+      # If left blank, falls back to the AWS_PROFILE / IAM role below.
+      BEDROCK_ACCESS_KEY_ID: ""
+      BEDROCK_SECRET_ACCESS_KEY: ""
       # ── Anthropic (direct API — alternative to Bedrock) ────────────────────────
       ANTHROPIC_API_KEY: ""
       # ── AWS ────────────────────────────────────────────────────────────────────

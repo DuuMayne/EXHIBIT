@@ -274,9 +274,28 @@ _BEDROCK_DEFAULT_MODEL = "us.anthropic.claude-sonnet-4-5-20251001-v1:0"
 
 
 def _make_bedrock_client():
-    """Return an AnthropicBedrock client using the existing AWS credential chain."""
+    """Return an AnthropicBedrock client.
+
+    Credential resolution order:
+    1. BEDROCK_ACCESS_KEY_ID + BEDROCK_SECRET_ACCESS_KEY — dedicated scoped key
+       (recommended: IAM user with bedrock:InvokeModel only, set in Docker Desktop)
+    2. Default boto3 chain — AWS_PROFILE / IAM role / instance metadata
+       (used when running the AWS collector via SSO and sharing credentials)
+    """
     import anthropic
     region = os.environ.get("AWS_REGION", "us-east-1")
+    access_key = os.environ.get("BEDROCK_ACCESS_KEY_ID")
+    secret_key = os.environ.get("BEDROCK_SECRET_ACCESS_KEY")
+    session_token = os.environ.get("BEDROCK_SESSION_TOKEN")  # optional, for temp creds
+
+    if access_key and secret_key:
+        return anthropic.AnthropicBedrock(
+            aws_region=region,
+            aws_access_key=access_key,
+            aws_secret_key=secret_key,
+            aws_session_token=session_token or None,
+        )
+    # Fall back to boto3 default chain (AWS_PROFILE, IAM role, etc.)
     return anthropic.AnthropicBedrock(aws_region=region)
 
 
